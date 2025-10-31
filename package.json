@@ -1,0 +1,44 @@
+{
+  "name": "stayfi-rwa",
+  "version": "1.0.0",
+  "description": "StayFi - Hotel Night-Pass as RWA NFTs on Celo Blockchain",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js --network alfajores",
+    "deploy:local": "hardhat run scripts/deploy.js --network hardhat",
+    "deploy:celo-sepolia": "hardhat run scripts/deploy-celo-sepolia.js --network celoSepolia",
+    "deploy:sui": "node scripts/deploy-sui.js",
+    "test": "hardhat test",
+    "coverage": "hardhat coverage",
+    "node": "hardhat node",
+    "clean": "hardhat clean",
+    "server": "node server/verify-server.js",
+    "server:enhanced": "node server/self-verify-enhanced.js"
+  },
+  "keywords": [
+    "blockchain",
+    "rwa",
+    "nft",
+    "celo",
+    "defi",
+    "hotel",
+    "web3"
+  ],
+  "author": "StayFi Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "ethers": "^6.15.0",
+    "hardhat": "^2.19.0"
+  },
+  "dependencies": {
+    "@mysten/sui.js": "^0.54.0",
+    "@openzeppelin/contracts": "^5.4.0",
+    "@selfxyz/core": "^1.0.0",
+    "@selfxyz/qrcode": "^1.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  }
+}

@@ -1,0 +1,3107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StayFi - RWA Experience</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load ethers.js for wallet connection -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" type="text/javascript"></script>
+    <!-- Load QRCode.js for QR code generation -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js" type="text/javascript"></script>
+    <!-- Load SnarkJS for ZK Proofs -->
+    <script src="https://cdn.jsdelivr.net/npm/snarkjs@0.7.0/build/snarkjs.min.js" type="text/javascript"></script>
+    <!-- Load Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        /* Loading Spinner */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            width: 56px;
+            height: 56px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #EAB308; /* Gold */
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        /* Hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+
+    <script>
+        // Setup Tailwind CSS Custom Theme
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-dark': '#1E293B', // Dark Blue
+                        'primary-gold': '#EAB308', // Gold
+                        'primary-bg': '#F8FAFC',   // Background Gray
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        body: ['Nunito Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-300 min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <!-- App Container (Simulating iPhone 14 Pro) -->
+    <div id="app-container" class="relative w-[390px] h-[844px] bg-primary-bg shadow-2xl rounded-[44px] overflow-hidden border-8 border-black">
+
+        <!-- ===== 1. Login Screen ===== -->
+        <div id="screen-login" class="screen absolute inset-0 bg-primary-dark text-white p-8 flex flex-col justify-between">
+            <!-- Header -->
+            <div class="text-center mt-16 animate-fade-in">
+                <svg class="w-20 h-20 mx-auto" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="#EAB308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 7L12 12L22 7" stroke="#EAB308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 12V22" stroke="#EAB308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1 class="text-4xl font-bold mt-4 text-primary-gold">StayFi</h1>
+                <p class="text-lg text-gray-300 mt-2">Own Your Night</p>
+            </div>
+
+            <!-- Input Group -->
+            <div class="flex flex-col gap-6 animate-fade-in" style="animation-delay: 100ms;">
+                
+                <button id="connect-wallet-btn" class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg shadow-lg hover:bg-yellow-400 transition flex items-center justify-center gap-2">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M21.6 8.2l-2-3.5-2.2.3c-.4-.3-.8-.6-1.2-.8l-.5-2.2h-3.9l-.5 2.2c-.4.2-.8.5-1.2.8l-2.2-.3-2 3.5 1.7 1.3c-.1.3-.1.6-.1.9s0 .6.1.9l-1.7 1.3 2 3.5 2.2-.3c.4.3.8.6 1.2.8l.5 2.2h3.9l.5-2.2c.4-.2.8-.5 1.2-.8l-2.2.3 2-3.5-1.7-1.3c.1-.3.1-.6.1-.9s0-.6-.1-.9l1.7-1.3zM12 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                    Connect imToken / Wallet
+                </button>
+
+                <div class="flex items-center my-2">
+                    <hr class="flex-grow border-gray-600">
+                    <span class="px-3 text-gray-400 text-sm">OR</span>
+                    <hr class="flex-grow border-gray-600">
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <input type="email" placeholder="Email" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-gold">
+                    <input type="password" placeholder="Password" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-gold">
+                </div>
+                
+                <button data-target="screen-zk-module" class="w-full bg-transparent border-2 border-gray-600 text-gray-300 font-bold py-3 rounded-lg text-lg hover:bg-gray-700 transition">
+                    Continue with Email
+                </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center pb-4 animate-fade-in" style="animation-delay: 200ms;">
+                <p class="text-xs text-gray-500">Powered by Self Onchain SDK</p>
+            </div>
+        </div>
+
+        <!-- ===== 2. ZK Proof Module (Onboarding) - Self Protocol ===== -->
+        <div id="screen-zk-module" class="screen hidden absolute inset-0 bg-primary-dark text-white p-6 flex flex-col justify-start items-center overflow-y-auto no-scrollbar">
+            <div class="bg-primary-gold/10 border border-primary-gold rounded-lg p-3 mb-3 max-w-sm w-full mt-6">
+                <p class="text-xs text-primary-gold font-medium text-center">🔒 Zero-Knowledge Proof via Self Protocol</p>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Privacy Verification</h2>
+            <!-- Desktop instruction -->
+            <p id="desktop-instruction" class="hidden md:block text-gray-300 mb-2 text-sm max-w-sm text-center">
+                Scan the QR code with <span class="text-primary-gold font-semibold">Self app</span> to verify your identity.
+            </p>
+            <!-- Mobile instruction -->
+            <p id="mobile-instruction" class="md:hidden text-gray-300 mb-2 text-sm max-w-sm text-center">
+                Tap the button below to open <span class="text-primary-gold font-semibold">Self app</span> and verify your identity.
+            </p>
+            <p class="text-gray-400 text-xs mb-4 max-w-sm text-center">ℹ️ This proves you meet requirements <b>without revealing</b> personal data.</p>
+            <p class="text-xs text-primary-gold mb-4">Powered by <span class="font-bold">Self Protocol</span> on <span class="font-bold">Celo</span></p>
+
+            <!-- Mobile Deeplink Button (Primary for mobile demo) -->
+            <button id="open-self-app-btn-main" class="w-full max-w-sm bg-primary-gold text-primary-dark font-bold py-4 rounded-xl text-lg shadow-2xl hover:bg-yellow-400 transition mb-4 flex items-center justify-center gap-3">
+                <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <span>📱 驗證身份 / Verify Identity</span>
+            </button>
+            
+            
+
+            <!-- QR Code Container (Optional fallback) -->
+            <div id="self-qr-container" class="hidden bg-white rounded-2xl p-4 mb-4 shadow-xl max-w-sm w-full">
+                <div class="text-center">
+                    <div id="self-qr-loading" class="py-12">
+                        <div class="spinner border-primary-gold"></div>
+                        <p class="text-gray-600 mt-4 text-sm">Generating QR Code...</p>
+                    </div>
+                    <div id="self-qr-code" class="hidden"></div>
+                </div>
+            </div>
+            
+            <!-- Show QR Code Link (for desktop fallback) -->
+            <button id="show-qr-btn" class="hidden text-sm text-gray-400 underline mb-4" onclick="document.getElementById('self-qr-container').classList.toggle('hidden')">
+                或顯示 QR Code (桌面端)
+            </button>
+
+            <!-- Requirements Status -->
+            <div class="space-y-3 w-full max-w-sm mb-4">
+                <div class="bg-gray-700/50 border border-gray-600 rounded-lg p-3 flex items-center justify-between">
+                    <span class="text-sm font-medium text-white">Age 18+</span>
+                    <span id="self-status-age" class="text-lg text-gray-400">⏳</span>
+                </div>
+                <div class="bg-gray-700/50 border border-gray-600 rounded-lg p-3 flex items-center justify-between">
+                    <span class="text-sm font-medium text-white">Not Sanctioned Country</span>
+                    <span id="self-status-country" class="text-lg text-gray-400">⏳</span>
+                </div>
+                <div class="bg-gray-700/50 border border-gray-600 rounded-lg p-3 flex items-center justify-between">
+                    <span class="text-sm font-medium text-white">OFAC Compliant</span>
+                    <span id="self-status-ofac" class="text-lg text-gray-400">⏳</span>
+                </div>
+            </div>
+
+            <!-- Status Message -->
+            <div id="self-status-message" class="text-center text-sm text-gray-400 max-w-sm mb-4">
+                <p>Scan QR code to verify your identity...</p>
+            </div>
+
+            <!-- Demo/Test Buttons (Hidden for clean demo) -->
+            <div id="demo-buttons" class="hidden flex-col gap-3 w-full max-w-sm mt-4">
+                <p class="text-xs text-gray-500 text-center mb-2">🛠️ Developer Mode</p>
+                <button id="demo-success-btn" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg text-sm shadow-lg hover:bg-green-500 transition">
+                    ✅ Quick Success
+                </button>
+                <button id="demo-fail-btn" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg text-sm shadow-lg hover:bg-red-500 transition">
+                    ❌ Show Failure
+                </button>
+            </div>
+        </div>
+        
+        <!-- ===== 3. Loading Screen ===== -->
+        <div id="screen-loading-spinner" class="screen hidden absolute inset-0 bg-primary-dark p-8 flex flex-col justify-center items-center text-center">
+            <div class="spinner"></div>
+            <h2 class="text-2xl font-bold text-white mt-8">Generating ZK Proof...</h2>
+            <p class="text-gray-300 mt-2">Verifying on the Celo network...</p>
+        </div>
+
+        <!-- ===== NEW: ZK Proof Fail Screen ===== -->
+        <div id="screen-zk-fail" class="screen hidden absolute inset-0 bg-primary-dark text-white p-8 flex flex-col justify-center items-center text-center">
+            <svg class="w-20 h-20 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h2 class="text-2xl font-bold text-white mt-8">Verification Failed ⚠️</h2>
+            <p class="text-gray-300 mt-4 mb-8">We couldn't verify your credentials. This might be because:</p>
+            
+            <div class="space-y-4 w-full max-w-sm mb-12">
+                <div class="bg-gray-700/50 border border-red-500 rounded-lg p-4 flex items-center justify-between shadow-lg">
+                    <span class="text-lg font-medium text-white">OFAC / Non-Sanctioned</span>
+                    <span class="text-2xl text-red-400">❌</span>
+                </div>
+            </div>
+            <p class="text-sm text-gray-400 mb-8">Your account may be from a sanctioned region, restricting access to RWA assets.</p>
+
+            <button data-target="screen-login" class="w-full max-w-sm bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg shadow-lg hover:bg-yellow-400 transition">
+                Back to Login
+            </button>
+        </div>
+
+        <!-- ===== NEW: Wallet Connecting Screen ===== -->
+        <div id="screen-wallet-connecting" class="screen hidden absolute inset-0 bg-primary-dark p-8 flex flex-col justify-center items-center text-center">
+            <div class="spinner"></div>
+            <h2 class="text-2xl font-bold text-white mt-8">Connecting to Wallet...</h2>
+            <p id="wallet-connecting-message" class="text-gray-300 mt-2">Please confirm in imToken / Celo Wallet...</p>
+            <div id="wallet-connected-info" class="hidden mt-6 bg-gray-800 rounded-lg p-4 max-w-sm w-full">
+                <p class="text-sm text-gray-400">Connected Address</p>
+                <p id="connected-address" class="text-sm font-mono text-primary-gold truncate mt-1"></p>
+                <p id="connected-balance" class="text-sm text-gray-300 mt-2"></p>
+            </div>
+        </div>
+
+        <!-- ===== 4. Explore Screen ===== -->
+        <div id="screen-explore" class="screen hidden absolute inset-0 bg-primary-bg overflow-y-auto">
+            <div class="p-6 pt-12 pb-24">
+            <!-- Search Bar -->
+            <div class="relative mb-4">
+                <input type="text" placeholder="🔍 Search City / Date / Hotel" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-gold">
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="flex gap-2 overflow-x-auto no-scrollbar mb-6">
+                <button class="px-4 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 whitespace-nowrap">Sort by: Price</button>
+                <button class="px-4 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 whitespace-nowrap">Filter: Verified</button>
+                <button class="px-4 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 whitespace-nowrap">Yield: 5%+
+                </button>
+            </div>
+
+            <!-- ===== NEW: AI Recommendations ===== -->
+            <div class="mb-6 animate-fade-in" style="animation-delay: 100ms;">
+                <h3 class="text-xl font-bold text-primary-dark mb-3">🤖 AI Recommends for You</h3>
+                <div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                    
+                    <!-- AI Card 1 -->
+                    <div data-modal="modal-mint-detail" class="bg-white rounded-xl shadow-md overflow-hidden w-60 flex-shrink-0 cursor-pointer hover:shadow-lg transition">
+                        <img class="h-32 w-full object-cover" src="https://placehold.co/600x400/1E293B/EAB308?text=Osaka+Loft" alt="Osaka Hotel">
+                        <div class="p-3">
+                            <h4 class="font-bold text-primary-dark truncate">Osaka Loft</h4>
+                            <p class="text-sm text-green-600 font-medium">🔥 High Yield Potential</p>
+                            <span class="text-sm font-bold text-primary-dark mt-1 block">90 USDC</span>
+                        </div>
+                    </div>
+
+                    <!-- AI Card 2 -->
+                    <div data-modal="modal-mint-detail" class="bg-white rounded-xl shadow-md overflow-hidden w-60 flex-shrink-0 cursor-pointer hover:shadow-lg transition">
+                        <img class="h-32 w-full object-cover" src="https://placehold.co/600x400/1E293B/EAB308?text=Fukuoka+Zen" alt="Fukuoka Hotel">
+                        <div class="p-3">
+                            <h4 class="font-bold text-primary-dark truncate">Fukuoka Zen House</h4>
+                            <p class="text-sm text-blue-600 font-medium">💎 Hidden Gem</p>
+                            <span class="text-sm font-bold text-primary-dark mt-1 block">110 USDC</span>
+                        </div>
+                    </div>
+
+                    <!-- AI Card 3 -->
+                    <div data-modal="modal-mint-detail" class="bg-white rounded-xl shadow-md overflow-hidden w-60 flex-shrink-0 cursor-pointer hover:shadow-lg transition">
+                        <img class="h-32 w-full object-cover" src="https://placehold.co/600x400/1E293B/EAB308?text=Hokkaido+View" alt="Hokkaido Hotel">
+                        <div class="p-3">
+                            <h4 class="font-bold text-primary-dark truncate">Hokkaido View</h4>
+                            <p class="text-sm text-yellow-600 font-medium">📈 Fast Trending</p>
+                            <span class="text-sm font-bold text-primary-dark mt-1 block">130 USDC</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!-- ===== AI Recommendations End ===== -->
+
+
+            <!-- Night-Pass List -->
+            <h3 class="text-xl font-bold text-primary-dark mb-3">All Listings</h3>
+            <div class="flex flex-col gap-4 animate-fade-in">
+                <!-- Card 1 -->
+                <div data-modal="modal-mint-detail" 
+                     data-hotel-name="KyotoStay Hotel"
+                     data-hotel-price="120"
+                     data-hotel-yield="5.4"
+                     data-hotel-image="https://placehold.co/600x400/1E293B/EAB308?text=KyotoStay"
+                     data-hotel-desc="This traditional Japanese ryokan in central Kyoto offers a unique cultural experience and stable RWA yield."
+                     class="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition">
+                    <img class="h-40 w-full object-cover" src="https://placehold.co/600x400/1E293B/EAB308?text=KyotoStay" alt="Kyoto Hotel">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-primary-dark">KyotoStay Hotel</h3>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Price: 120 USDC</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Yield: +5.4%</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-sm font-semibold text-green-600">Proof of Reserve ✅</span>
+                            <span class="text-primary-gold font-bold">Details →</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div data-modal="modal-mint-detail"
+                     data-hotel-name="Taipei Loft"
+                     data-hotel-price="95"
+                     data-hotel-yield="4.8"
+                     data-hotel-image="https://placehold.co/600x400/1E293B/EAB308?text=Taipei+Loft"
+                     data-hotel-desc="Modern loft in the heart of Taipei with convenient access to shopping and dining. Great for young professionals."
+                     class="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition">
+                    <img class="h-40 w-full object-cover" src="https://placehold.co/600x400/1E293B/EAB308?text=Taipei+Loft" alt="Taipei Hotel">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-primary-dark">Taipei Loft</h3>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Price: 95 USDC</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Yield: +4.8%</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-sm font-semibold text-green-600">Proof of Reserve ✅</span>
+                            <span class="text-primary-gold font-bold">Details →</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div data-modal="modal-mint-detail"
+                     data-hotel-name="Okinawa Villa"
+                     data-hotel-price="210"
+                     data-hotel-yield="6.1"
+                     data-hotel-image="https://placehold.co/600x400/1E293B/EAB308?text=Okinawa+Villa"
+                     data-hotel-desc="Luxury beachfront villa in Okinawa with private pool. Perfect for a tropical getaway with high yield potential."
+                     class="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition">
+                    <img class="h-40 w-full object-cover" src="https://placehold.co/600x400/1E293B/EAB308?text=Okinawa+Villa" alt="Okinawa Hotel">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-primary-dark">Okinawa Villa</h3>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Price: 210 USDC</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Yield: +6.1%</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-sm font-semibold text-green-600">Proof of Reserve ✅</span>
+                            <span class="text-primary-gold font-bold">Details →</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 4 -->
+                <div data-modal="modal-mint-detail"
+                     data-hotel-name="Tokyo Grand Suite"
+                     data-hotel-price="280"
+                     data-hotel-yield="7.2"
+                     data-hotel-image="https://placehold.co/600x400/1E293B/EAB308?text=Tokyo+Suite"
+                     data-hotel-desc="Premium suite in central Tokyo with stunning city views. Perfect for business travelers seeking luxury accommodations."
+                     class="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition">
+                    <img class="h-40 w-full object-cover" src="https://placehold.co/600x400/1E293B/EAB308?text=Tokyo+Suite" alt="Tokyo Hotel">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-primary-dark">Tokyo Grand Suite</h3>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Price: 280 USDC</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Yield: +7.2%</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-sm font-semibold text-green-600">Proof of Reserve ✅</span>
+                            <span class="text-primary-gold font-bold">Details →</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 5 -->
+                <div data-modal="modal-mint-detail"
+                     data-hotel-name="Seoul Modern Hotel"
+                     data-hotel-price="145"
+                     data-hotel-yield="5.9"
+                     data-hotel-image="https://placehold.co/600x400/1E293B/EAB308?text=Seoul+Modern"
+                     data-hotel-desc="Contemporary hotel in trendy Gangnam district. Close to K-pop culture spots and gourmet restaurants."
+                     class="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition">
+                    <img class="h-40 w-full object-cover" src="https://placehold.co/600x400/1E293B/EAB308?text=Seoul+Modern" alt="Seoul Hotel">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-primary-dark">Seoul Modern Hotel</h3>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Price: 145 USDC</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Yield: +5.9%</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-sm font-semibold text-green-600">Proof of Reserve ✅</span>
+                            <span class="text-primary-gold font-bold">Details →</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 6 -->
+                <div data-modal="modal-mint-detail"
+                     data-hotel-name="Bangkok Beach Resort"
+                     data-hotel-price="85"
+                     data-hotel-yield="4.5"
+                     data-hotel-image="https://placehold.co/600x400/1E293B/EAB308?text=Bangkok+Resort"
+                     data-hotel-desc="Affordable beach resort near Bangkok with excellent Thai cuisine and spa facilities. Great value for money."
+                     class="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition">
+                    <img class="h-40 w-full object-cover" src="https://placehold.co/600x400/1E293B/EAB308?text=Bangkok+Resort" alt="Bangkok Hotel">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-primary-dark">Bangkok Beach Resort</h3>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Price: 85 USDC</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Yield: +4.5%</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-sm font-semibold text-green-600">Proof of Reserve ✅</span>
+                            <span class="text-primary-gold font-bold">Details →</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 7 -->
+                <div data-modal="modal-mint-detail"
+                     data-hotel-name="Singapore Marina Hotel"
+                     data-hotel-price="195"
+                     data-hotel-yield="6.8"
+                     data-hotel-image="https://placehold.co/600x400/1E293B/EAB308?text=Singapore+Hotel"
+                     data-hotel-desc="Iconic Marina Bay hotel with infinity pool and world-class amenities. Premium location with strong returns."
+                     class="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition">
+                    <img class="h-40 w-full object-cover" src="https://placehold.co/600x400/1E293B/EAB308?text=Singapore+Hotel" alt="Singapore Hotel">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-primary-dark">Singapore Marina Hotel</h3>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Price: 195 USDC</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Yield: +6.8%</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-sm font-semibold text-green-600">Proof of Reserve ✅</span>
+                            <span class="text-primary-gold font-bold">Details →</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 8 -->
+                <div data-modal="modal-mint-detail"
+                     data-hotel-name="Hong Kong View Hotel"
+                     data-hotel-price="165"
+                     data-hotel-yield="5.6"
+                     data-hotel-image="https://placehold.co/600x400/1E293B/EAB308?text=Hong+Kong"
+                     data-hotel-desc="Harbor view hotel in Tsim Sha Tsui with easy access to shopping and entertainment. Perfect urban retreat."
+                     class="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition">
+                    <img class="h-40 w-full object-cover" src="https://placehold.co/600x400/1E293B/EAB308?text=Hong+Kong" alt="Hong Kong Hotel">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-primary-dark">Hong Kong View Hotel</h3>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Price: 165 USDC</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Yield: +5.6%</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-sm font-semibold text-green-600">Proof of Reserve ✅</span>
+                            <span class="text-primary-gold font-bold">Details →</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- ===== 5. MyPass Screen ===== -->
+        <div id="screen-mypass" class="screen hidden absolute inset-0 bg-primary-bg overflow-y-auto">
+            <div class="p-6 pt-12 pb-24">
+            <!-- Top Tabs -->
+            <div class="flex bg-gray-200 rounded-lg p-1 mb-6">
+                <button id="tab-my-passes" class="flex-1 py-2 rounded-md bg-white shadow text-primary-gold font-bold">My Passes</button>
+                <button id="tab-marketplace" class="flex-1 py-2 rounded-md text-gray-500 font-medium">Marketplace</button>
+            </div>
+            
+            <!-- NFT Card List (My Passes View) -->
+            <div id="mypass-nft-list" class="flex flex-col gap-4 animate-fade-in">
+                <!-- Card 1 (Active) -->
+                <div id="pass-card-2489" class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-xl font-bold text-primary-dark">KyotoStay Hotel</h3>
+                                <p class="text-sm text-gray-500">Night-Pass #2489</p>
+                            </div>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Active</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-4">
+                            <div class="text-center">
+                                <p class="text-xs text-gray-500">Check-in</p>
+                                <p class="text-lg font-bold text-primary-dark">Dec 20</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-lg font-bold text-red-500">3 Days Left</p>
+                                <p class="text-xs text-gray-500">until check-in</p>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-xs text-gray-500">Earnings Progress</p>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                                <div class="bg-primary-gold h-2.5 rounded-full" style="width: 45%"></div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4">
+                            <button data-modal="modal-sell-listing" class="flex-1 bg-primary-gold text-primary-dark font-bold py-2 rounded-lg text-sm">Sell on Market</button>
+                            <button data-modal="modal-borrow" class="flex-1 bg-gray-200 text-gray-700 font-bold py-2 rounded-lg text-sm">Borrow</button>
+                            <button data-modal="modal-transfer-menu" class="w-10 bg-gray-200 text-gray-700 font-bold py-2 rounded-lg text-sm">···</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 2 (Listed) -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-xl font-bold text-primary-dark">Taipei Loft</h3>
+                                <p class="text-sm text-gray-500">Night-Pass #2121</p>
+                            </div>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Listed</span>
+                        </div>
+                        <p class="text-gray-600 mt-2">Listed Price: <span class="font-bold text-primary-dark">105 USDC</span></p>
+                        <div class="flex gap-2 mt-4">
+                            <button class="w-full bg-red-100 text-red-700 font-bold py-2 rounded-lg text-sm">Cancel Listing</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 3 (Used - at bottom) -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden opacity-60">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-xl font-bold text-primary-dark">Osaka Loft</h3>
+                                <p class="text-sm text-gray-500">Night-Pass #1856</p>
+                            </div>
+                            <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">Used</span>
+                        </div>
+                        <p class="text-gray-500 mt-2 text-sm">Check-in completed: Oct 15, 2025</p>
+                        <div class="mt-4">
+                            <p class="text-xs text-gray-500">Final Earnings</p>
+                            <p class="text-lg font-bold text-green-600">+6.2 USDC</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Marketplace View (New) -->
+            <div id="mypass-marketplace-view" class="hidden flex flex-col gap-4 animate-fade-in">
+                <!-- Filter Buttons -->
+                <div class="flex gap-2 overflow-x-auto no-scrollbar mb-2">
+                    <button class="px-4 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 whitespace-nowrap">Sort by: Price</button>
+                    <button class="px-4 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 whitespace-nowrap">City: Kyoto</button>
+                    <button class="px-4 py-1.5 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 whitespace-nowrap">Yield: 5%+
+                    </button>
+                </div>
+                
+                <!-- Market Card 1 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-xl font-bold text-primary-dark">Okinawa Villa</h3>
+                                <p class="text-sm text-gray-500">Night-Pass #1982</p>
+                            </div>
+                            <span class="text-lg font-bold text-primary-dark">215 USDC</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Check-in: Nov 10 (7 Days Left)</p>
+                        <button class="w-full bg-primary-gold text-primary-dark font-bold py-2 rounded-lg text-sm mt-4" data-modal="modal-wallet-confirm" data-action="buy_item">
+                            Buy Now
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Market Card 2 -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-xl font-bold text-primary-dark">Taipei Loft</h3>
+                                <p class="text-sm text-gray-500">Night-Pass #2121</p>
+                            </div>
+                            <span class="text-lg font-bold text-primary-dark">105 USDC</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Check-in: Dec 05 (32 Days Left)</p>
+                        <button class="w-full bg-primary-gold text-primary-dark font-bold py-2 rounded-lg text-sm mt-4" data-modal="modal-wallet-confirm" data-action="buy_item">
+                            Buy Now
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Empty State (Hidden by default) -->
+            <div id="mypass-empty" class="hidden text-center mt-20">
+                <svg class="w-24 h-24 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H7a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                <h3 class="text-xl font-bold text-primary-dark mt-4">No Night-Passes Yet</h3>
+                <p class="text-gray-500 mt-2">Start exploring to mint your first Night-Pass.</p>
+                <button data-target="screen-explore" class="mt-6 bg-primary-gold text-primary-dark font-bold py-3 px-6 rounded-lg text-lg">
+                    🚀 Start Exploring
+                </button>
+            </div>
+            </div>
+        </div>
+
+        <!-- ===== 6. Proof Screen ===== -->
+        <div id="screen-proof" class="screen hidden absolute inset-0 bg-primary-bg overflow-y-auto">
+            <div class="p-6 pt-12 pb-24 flex flex-col items-center">
+            <h2 class="text-3xl font-bold text-primary-dark text-center mb-4">Check-in with zkProof</h2>
+            <p class="text-gray-500 text-center mb-6">Select your Night-Pass to generate a proof for check-in.</p>
+            
+            <select id="proof-nft-select" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 mb-6 focus:outline-none focus:ring-2 focus:ring-primary-gold" style="max-width: 100%;">
+                <option value="">Select your Night-Pass...</option>
+            </select>
+
+            <div class="bg-white rounded-lg shadow-md p-6 w-full mb-8">
+                <h3 class="text-lg font-bold text-primary-dark mb-4">Proof Status</h3>
+                <div class="space-y-3">
+                    <div class="bg-green-50 rounded-lg p-3 flex items-center justify-between">
+                        <span class="font-medium text-green-800">Nationality</span>
+                        <span class="text-lg text-green-500">✅</span>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-3 flex items-center justify-between">
+                        <span class="font-medium text-green-800">Age 18+</span>
+                        <span class="text-lg text-green-500">✅</span>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-3 flex items-center justify-between">
+                        <span class="font-medium text-green-800">KYC Verified</span>
+                        <span class="text-lg text-green-500">✅</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button data-modal="modal-qr-code" class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg shadow-lg hover:bg-yellow-400 transition">
+                Generate Proof for Check-in
+            </button>
+            </div>
+        </div>
+
+        <!-- ===== 7. Earnings Screen ===== -->
+        <div id="screen-earnings" class="screen hidden absolute inset-0 bg-primary-bg overflow-y-auto">
+            <div class="p-6 pt-12 pb-24">
+            <h2 class="text-3xl font-bold text-primary-dark mb-6">My Earnings</h2>
+            
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-white rounded-lg shadow p-4">
+                    <p class="text-sm text-gray-500">Total Earnings</p>
+                    <p id="earnings-total-value" class="text-2xl font-bold text-green-600">0 USDC</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <p class="text-sm text-gray-500">Active Passes</p>
+                    <p id="earnings-active-passes" class="text-2xl font-bold text-primary-dark">0</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <p class="text-sm text-gray-500">Active Debt</p>
+                    <p id="earnings-debt-value" class="text-2xl font-bold text-red-600">0 USDC</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <p class="text-sm text-gray-500">Average APY</p>
+                    <p id="earnings-avg-apy" class="text-2xl font-bold text-primary-dark">0%</p>
+                </div>
+            </div>
+            
+            <!-- Earnings Curve (Placeholder) -->
+            <div class="bg-white rounded-lg shadow p-4 mb-6">
+                <h3 class="font-bold text-primary-dark mb-2">Earnings Curve</h3>
+                <img src="https://placehold.co/600x200/F8FAFC/1E293B?text=Earnings+Chart+Placeholder" class="w-full rounded" alt="Earnings Chart">
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-primary-dark">Recent Activity</h3>
+                <span class="text-sm text-primary-gold font-medium">View All</span>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="space-y-3">
+                <div class="bg-white rounded-lg shadow p-4 flex justify-between items-center">
+                    <div>
+                        <p class="font-medium text-primary-dark">Claimed Rewards</p>
+                        <p class="text-sm text-gray-400">Oct 30, 2025</p>
+                    </div>
+                    <p class="font-bold text-green-600">+ 5.2 USDC</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4 flex justify-between items-center">
+                    <div>
+                        <p class="font-medium text-primary-dark">Resold Night-Pass #2121</p>
+                        <p class="text-sm text-gray-400">Oct 28, 2025</p>
+                    </div>
+                    <p class="font-bold text-green-600">+ 4.3%</p>
+                </div>
+            </div>
+            
+            <button class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg shadow-lg hover:bg-yellow-400 transition mt-8" data-modal="modal-wallet-confirm" data-action="claim">
+                Claim Rewards
+            </button>
+            </div>
+        </div>
+
+        <!-- ===== 8. Profile Screen ===== -->
+        <div id="screen-profile" class="screen hidden absolute inset-0 bg-primary-bg overflow-y-auto">
+            <div class="p-6 pt-12 pb-24">
+            <!-- User Avatar -->
+            <div class="flex flex-col items-center mb-8">
+                <img class="w-24 h-24 rounded-full border-4 border-white shadow-lg" src="https://placehold.co/100x100/EAB308/1E293B?text=User" alt="User Avatar">
+                <h2 class="text-2xl font-bold text-primary-dark mt-4">User Name</h2>
+                <p class="text-gray-500">Level 3 Voyager</p>
+            </div>
+            
+            <!-- Wallet Info -->
+            <div class="bg-white rounded-lg shadow p-4 mb-6">
+                <h3 class="text-sm font-medium text-gray-500 mb-2">Wallet Address</h3>
+                <div class="flex justify-between items-center">
+                    <p id="profile-wallet-address" class="text-primary-dark font-mono text-sm truncate">0x1a2b...c3d4</p>
+                    <button id="profile-copy-address" class="focus:outline-none" title="Copy address">
+                        <svg class="w-5 h-5 text-gray-400 hover:text-primary-gold cursor-pointer transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    </button>
+                </div>
+                <h3 class="text-sm font-medium text-gray-500 mt-4 mb-2">ZK Proof ID</h3>
+                <p class="text-primary-dark font-mono text-sm truncate">zk_...fgh8</p>
+            </div>
+
+            <!-- Balance Card -->
+            <div class="bg-white rounded-lg shadow p-4 mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-sm text-gray-500">Available Balance</p>
+                    <button id="profile-refresh-balance" class="text-xs text-primary-gold hover:text-yellow-600 font-medium transition" title="Refresh balance">
+                        🔄 Refresh
+                    </button>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between items-baseline">
+                        <span id="profile-balance-usdc" class="text-3xl font-bold text-primary-dark">85.00</span>
+                        <span class="text-xl font-medium text-gray-500">CELO</span>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <span id="profile-balance-sui" class="text-3xl font-bold text-primary-dark">0.00</span>
+                        <span class="text-xl font-medium text-gray-500">USDC</span>
+                    </div>
+                </div>
+                <button class="w-full bg-primary-gold text-primary-dark font-bold py-2 rounded-lg text-sm mt-4" data-modal="modal-wallet-confirm" data-action="add_funds">
+                    Add Funds
+                </button>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="bg-white rounded-lg shadow p-4 mb-6">
+                <div class="flex justify-between items-center py-2">
+                    <span class="font-medium text-primary-dark">Privacy Mode</span>
+                    <button class="relative inline-flex items-center h-6 rounded-full w-11 bg-gray-200"><span class="inline-block w-4 h-4 transform bg-white rounded-full transition"></span></button>
+                </div>
+                <hr class="my-2 border-gray-100">
+                <div class="flex justify-between items-center py-2">
+                    <span class="font-medium text-primary-dark">Auto Logout</span>
+                    <button class="relative inline-flex items-center h-6 rounded-full w-11 bg-gray-200"><span class="inline-block w-4 h-4 transform bg-white rounded-full transition"></span></button>
+                </div>
+            </div>
+            
+            <button data-target="screen-login" class="w-full bg-gray-200 text-red-600 font-bold py-3 rounded-lg text-lg">
+                Logout
+            </button>
+            
+            <p class="text-center text-xs text-gray-400 mt-6">Powered by Self & Celo</p>
+            </div>
+        </div>
+
+        <!-- ===== Bottom Tab Bar ===== -->
+        <nav id="tab-bar" class="absolute bottom-0 left-0 right-0 h-20 bg-white border-t border-gray-200 flex justify-around items-center rounded-b-[44px] shadow-[0_-4px_12px_rgba(0,0,0,0.05)]" style="display: none;">
+            <!-- Explore -->
+            <button data-target="screen-explore" class="tab-button flex flex-col items-center justify-center text-primary-gold" data-screen="screen-explore">
+                <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM10.09 18.09L5.5 13.5L7 12.09L10.09 15.17L17 8.25L18.5 9.75L10.09 18.09Z"/></svg>
+                <span class="text-xs font-medium mt-0.5">Explore</span>
+            </button>
+            <!-- MyPass -->
+            <button data-target="screen-mypass" class="tab-button flex flex-col items-center justify-center text-gray-400" data-screen="screen-mypass">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H7a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                <span class="text-xs font-medium mt-0.5">MyPass</span>
+            </button>
+            <!-- Proof -->
+            <button data-target="screen-proof" class="tab-button flex flex-col items-center justify-center text-gray-400" data-screen="screen-proof">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                <span class="text-xs font-medium mt-0.5">Proof</span>
+            </button>
+            <!-- Earnings -->
+            <button data-target="screen-earnings" class="tab-button flex flex-col items-center justify-center text-gray-400" data-screen="screen-earnings">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <span class="text-xs font-medium mt-0.5">Earnings</span>
+            </button>
+            <!-- Profile -->
+            <button data-target="screen-profile" class="tab-button flex flex-col items-center justify-center text-gray-400" data-screen="screen-profile">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <span class="text-xs font-medium mt-0.5">Profile</span>
+            </button>
+        </nav>
+
+        <!-- ===== Modals ===== -->
+
+        <!-- 1. Mint Night-Pass Detail Modal -->
+        <div id="modal-mint-detail" class="modal hidden fixed inset-0 w-[390px] h-[844px] m-auto z-40">
+            <div data-modal-close class="modal-overlay absolute inset-0 bg-black/60"></div>
+            <div class="modal-content absolute bottom-0 left-0 right-0 h-3/4 bg-white rounded-t-3xl p-6 flex flex-col animate-fade-in no-scrollbar overflow-y-auto">
+                <div data-modal-close class="w-16 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-pointer"></div>
+                <img id="modal-hotel-image" class="h-48 w-full object-cover rounded-lg mb-4" src="https://placehold.co/600x400/1E293B/EAB308?text=KyotoStay" alt="Hotel">
+                <h2 id="modal-hotel-name" class="text-2xl font-bold text-primary-dark">KyotoStay Hotel</h2>
+                <p class="text-gray-500">Dec 20 - Dec 21 (1 Night)</p>
+                
+                <div class="flex items-center gap-3 my-4">
+                    <span id="modal-hotel-price" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Price: 120 USDC</span>
+                    <span id="modal-hotel-yield" class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Yield: +5.4%</span>
+                </div>
+                
+                <p id="modal-hotel-desc" class="text-gray-600 mb-4">This traditional Japanese ryokan in central Kyoto offers a unique cultural experience and stable RWA yield.</p>
+                
+                <h3 class="font-bold text-primary-dark mb-2">APY Curve (Demo)</h3>
+                <img src="https://placehold.co/600x200/F8FAFC/1E293B?text=APY+Chart+Placeholder" class="w-full rounded mb-4" alt="APY Chart">
+
+                <!-- NEW: Select Payment Currency -->
+                <div class="mb-4">
+                    <label for="currency-select" class="block text-sm font-medium text-gray-500 mb-1">Select Payment Currency</label>
+                    <select id="currency-select" class="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-primary-gold">
+                        <option id="currency-usdc-option" value="USDC" data-price="120 USDC">120 USDC</option>
+                        <option value="SUI" data-price="180 SUI (Demo)">180 SUI (Demo)</option>
+                    </select>
+                </div>
+
+                <div class="mt-auto flex flex-col gap-3 pt-4">
+                    <button id="mint-button" class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg shadow-lg" data-modal="modal-wallet-confirm" data-action="mint">
+                        Mint Night-Pass
+                    </button>
+                    <button data-modal-close class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg text-lg">
+                        Add to Favorites
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Mint Loading -->
+        <div id="modal-mint-loading" class="modal hidden fixed inset-0 w-[390px] h-[844px] m-auto z-50">
+            <div class="absolute inset-0 bg-black/70 flex flex-col justify-center items-center text-center">
+                <div class="spinner"></div>
+                <h2 class="text-2xl font-bold text-white mt-8">Transaction in progress...</h2>
+                <p class="text-gray-300 mt-2">Calling contract, please wait...</p>
+            </div>
+        </div>
+
+        <!-- 3. Mint Success -->
+        <div id="modal-mint-success" class="modal hidden fixed inset-0 w-[390px] h-[844px] m-auto z-50">
+            <div class="absolute inset-0 bg-black/70 flex flex-col justify-center items-center text-center p-8">
+                <div class="bg-white rounded-2xl p-8 flex flex-col items-center animate-fade-in">
+                    <svg class="w-20 h-20 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h2 class="text-2xl font-bold text-primary-dark mb-2">Mint Successful!</h2>
+                    <p id="mint-success-message" class="text-gray-600 mb-6">🌙 Night-Pass Created</p>
+                    <button id="close-mint-success" class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg">
+                        View in MyPass
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. QR Code Modal -->
+        <div id="modal-qr-code" class="modal hidden fixed inset-0 w-[390px] h-[844px] m-auto z-40">
+            <div data-modal-close class="modal-overlay absolute inset-0 bg-black/60"></div>
+            <div class="modal-content absolute bottom-0 left-0 right-0 h-auto bg-white rounded-t-3xl p-6 flex flex-col items-center animate-fade-in">
+                <div data-modal-close class="w-16 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-pointer"></div>
+                <div class="bg-green-100 text-green-800 font-bold p-3 rounded-lg text-center mb-4">
+                    Proof Verified ✅
+                </div>
+                <h2 class="text-2xl font-bold text-primary-dark mb-2">Show to hotel staff</h2>
+                <p class="text-gray-500 mb-4">Present this QR Code for check-in</p>
+                <div id="qrcode-container" class="flex justify-center mb-6">
+                    <!-- QR Code will be generated here dynamically -->
+                </div>
+                <button id="confirm-checkin-btn" class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg shadow-lg">
+                    ✅ Confirm Check-in (Use Pass)
+                </button>
+                <button data-modal-close class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg text-lg mt-3">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <!-- 5. Wallet Confirm Modal ===== -->
+        <div id="modal-wallet-confirm" class="modal hidden fixed inset-0 w-[390px] h-[844px] m-auto z-50">
+            <div data-modal-close class="modal-overlay absolute inset-0 bg-black/60"></div>
+            <div class="modal-content absolute bottom-0 left-0 right-0 h-auto bg-white rounded-t-3xl p-6 flex flex-col animate-fade-in">
+                <div data-modal-close class="w-16 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-pointer"></div>
+                
+                <div class="flex items-center gap-3 mb-4">
+                    <img src="https://placehold.co/40x40/1E293B/FFFFFF?text=im" class="w-10 h-10 rounded-full" alt="imToken Logo">
+                    <div>
+                        <h2 class="text-xl font-bold text-primary-dark">Confirm Transaction</h2>
+                        <p class="text-sm text-gray-500">via imToken / Celo Wallet</p>
+                    </div>
+                </div>
+
+                <div class="bg-primary-bg rounded-lg p-4 my-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-500">Action</span>
+                        <span id="wallet-action" class="font-medium text-primary-dark">Mint Night-Pass</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-500">Amount</span>
+                        <span id="wallet-amount" class="font-bold text-2xl text-primary-dark">120 USDC</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-500">Network Fee (Gas)</span>
+                        <span class="font-medium text-primary-dark">~ 0.05 Celo</span>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex flex-col gap-3">
+                    <button id="wallet-confirm-button" class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg shadow-lg">
+                        Confirm Payment
+                    </button>
+                    <button data-modal-close class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg text-lg">
+                        Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== NEW: 6. Sell Listing Modal ===== -->
+        <div id="modal-sell-listing" class="modal hidden fixed inset-0 w-[390px] h-[844px] m-auto z-40">
+            <div data-modal-close class="modal-overlay absolute inset-0 bg-black/60"></div>
+            <div class="modal-content absolute bottom-0 left-0 right-0 h-auto bg-white rounded-t-3xl p-6 flex flex-col animate-fade-in no-scrollbar overflow-y-auto">
+                <div data-modal-close class="w-16 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-pointer"></div>
+                <h2 class="text-2xl font-bold text-primary-dark text-center mb-4">List on Marketplace</h2>
+                
+                <!-- Item Info -->
+                <div class="bg-primary-bg rounded-lg p-4 mb-4">
+                    <h3 class="text-lg font-bold text-primary-dark">KyotoStay Hotel</h3>
+                    <p class="text-sm text-gray-500">Night-Pass #2489</p>
+                    <p class="text-sm text-gray-500 mt-1">Check-in: Dec 20</p>
+                </div>
+
+                <!-- AI Pricing -->
+                <div class="mb-4">
+                    <label for="sell-price-input" class="block text-sm font-medium text-gray-500 mb-1">Set Price (USDC)</label>
+                    <div class="flex gap-2">
+                        <input id="sell-price-input" type="number" placeholder="e.g.: 125" class="flex-1 w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-primary-gold">
+                        <button id="ai-price-btn" class="px-4 bg-primary-dark text-white rounded-lg font-medium hover:bg-gray-700 transition">
+                            🤖 AI Suggest
+                        </button>
+                    </div>
+                    <p id="ai-suggestion-text" class="text-sm text-green-600 font-medium mt-2 h-4"></p>
+                </div>
+
+                <div class="bg-gray-100 rounded-lg p-3 text-sm text-gray-600 mb-6">
+                    <div class="flex justify-between"><span>Platform Fee (2.5%)</span><span class="font-medium text-primary-dark">- 3.12 USDC</span></div>
+                    <div class="flex justify-between mt-1"><span>You will receive</span><span class="font-bold text-primary-dark">121.88 USDC</span></div>
+                </div>
+
+                <div class="mt-auto flex flex-col gap-3 pt-4">
+                    <button id="list-item-button" class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg shadow-lg" data-modal="modal-wallet-confirm" data-action="list_item">
+                        Confirm Listing
+                    </button>
+                    <button data-modal-close class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg text-lg">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== NEW: 7. List Success ===== -->
+        <div id="modal-list-success" class="modal hidden fixed inset-0 w-[390px] h-[844px] m-auto z-50">
+            <div class="absolute inset-0 bg-black/70 flex flex-col justify-center items-center text-center p-8">
+                <div class="bg-white rounded-2xl p-8 flex flex-col items-center animate-fade-in">
+                    <svg class="w-20 h-20 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h2 class="text-2xl font-bold text-primary-dark mb-2">List Successful!</h2>
+                    <p class="text-gray-600 mb-6">Your Night-Pass is now on the Marketplace.</p>
+                    <button id="close-list-success" class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== NEW: 8. More Actions (Transfer Menu) ===== -->
+        <div id="modal-transfer-menu" class="modal hidden fixed inset-0 w-[390px] h-[844px] m-auto z-40">
+            <div data-modal-close class="modal-overlay absolute inset-0 bg-black/60"></div>
+            <div class="modal-content absolute bottom-0 left-0 right-0 h-auto bg-white rounded-t-3xl p-6 flex flex-col animate-fade-in">
+                <div data-modal-close class="w-16 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-pointer"></div>
+                <h2 class="text-xl font-bold text-primary-dark text-center mb-4">More Actions</h2>
+                <div class="bg-primary-bg rounded-lg p-4 mb-4">
+                    <h3 class="text-lg font-bold text-primary-dark">KyotoStay Hotel</h3>
+                    <p class="text-sm text-gray-500">Night-Pass #2489</p>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <button id="open-transfer-verify-btn" class="w-full bg-gray-100 text-primary-dark font-bold py-3 rounded-lg text-lg">Transfer (Compliant)</button>
+                    <button class="w-full bg-gray-100 text-primary-dark font-bold py-3 rounded-lg text-lg">View on CeloScan</button>
+                    <button data-modal-close class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg text-lg mt-4">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== NEW: 9. Compliant Transfer (Transfer Verify) ===== -->
+        <div id="modal-transfer-verify" class="modal hidden fixed inset-0 w-[390px] h-[844px] m-auto z-40">
+            <div data-modal-close class="modal-overlay absolute inset-0 bg-black/60"></div>
+            <div class="modal-content absolute bottom-0 left-0 right-0 h-auto bg-white rounded-t-3xl p-6 flex flex-col animate-fade-in no-scrollbar overflow-y-auto">
+                <div data-modal-close class="w-16 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-pointer"></div>
+                <h2 class="text-2xl font-bold text-primary-dark text-center mb-4">Compliant Transfer (ERC-3643)</h2>
+                
+                <p class="text-sm text-gray-600 text-center mb-4">RWA assets are restricted. We must verify the recipient meets OFAC compliance via Self SDK before transferring.</p>
+
+                <div class="mb-4">
+                    <label for="recipient-address-input" class="block text-sm font-medium text-gray-500 mb-1">Friend's Wallet Address (0x...)</label>
+                    <div class="flex gap-2">
+                        <input id="recipient-address-input" type="text" placeholder="Enter address or 'fail' to test" class="flex-1 w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-primary-gold">
+                    </div>
+                </div>
+
+                <button id="verify-recipient-btn" class="w-full bg-primary-dark text-white font-bold py-3 rounded-lg text-lg hover:bg-gray-700 transition">
+                    Verify Recipient
+                </button>
+
+                <p id="verify-status-text" class="text-sm font-medium mt-3 h-10 text-center"></p>
+
+                <div class="mt-auto flex flex-col gap-3 pt-4">
+                    <button id="confirm-transfer-btn" class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg shadow-lg disabled:bg-gray-300 disabled:text-gray-500 disabled:shadow-none" data-modal="modal-wallet-confirm" data-action="transfer" disabled>
+                        Confirm Transfer
+                    </button>
+                    <button data-modal-close class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg text-lg">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== NEW: 10. RWA Borrow (Pass-Fi) ===== -->
+        <div id="modal-borrow" class="modal hidden fixed inset-0 w-[390px] h-[844px] m-auto z-40">
+            <div data-modal-close class="modal-overlay absolute inset-0 bg-black/60"></div>
+            <div class="modal-content absolute bottom-0 left-0 right-0 h-auto bg-white rounded-t-3xl p-6 flex flex-col animate-fade-in no-scrollbar overflow-y-auto">
+                <div data-modal-close class="w-16 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-pointer"></div>
+                <h2 class="text-2xl font-bold text-primary-dark text-center mb-4">RWA Borrow (Pass-Fi)</h2>
+                
+                <p class="text-sm text-gray-600 text-center mb-4">Use your Night-Pass as collateral to borrow liquid funds (USDC).</p>
+
+                <div class="bg-primary-bg rounded-lg p-4 mb-4">
+                    <h3 class="text-lg font-bold text-primary-dark">KyotoStay Hotel #2489</h3>
+                    <div class="flex justify-between mt-2 text-sm">
+                        <span class="text-gray-500">Asset Value</span>
+                        <span class="font-bold text-primary-dark">120 USDC</span>
+                    </div>
+                    <div class="flex justify-between mt-1 text-sm">
+                        <span class="text-gray-500">Max. Borrow (LTV 50%)</span>
+                        <span class="font-bold text-primary-dark">60 USDC</span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="borrow-amount-input" class="block text-sm font-medium text-gray-500 mb-1">Amount to borrow (USDC)</label>
+                    <div class="flex gap-2">
+                        <input id="borrow-amount-input" type="number" placeholder="Max 60" class="flex-1 w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-primary-gold">
+                    </div>
+                </div>
+
+                <div class="mt-auto flex flex-col gap-3 pt-4">
+                    <button id="confirm-borrow-btn" class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg shadow-lg" data-modal="modal-wallet-confirm" data-action="borrow">
+                        Confirm Borrow
+                    </button>
+                    <button data-modal-close class="w-full bg-gray-200 text-gray-700 font-bold py-3 rounded-lg text-lg">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== NEW: 11. Transfer Success ===== -->
+        <div id="modal-transfer-success" class="modal hidden fixed inset-0 w-[390px] h-[844px] m-auto z-50">
+            <div class="absolute inset-0 bg-black/70 flex flex-col justify-center items-center text-center p-8">
+                <div class="bg-white rounded-2xl p-8 flex flex-col items-center animate-fade-in">
+                    <svg class="w-20 h-20 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h2 class="text-2xl font-bold text-primary-dark mb-2">Transfer Successful!</h2>
+                    <p class="text-gray-600 mb-6">Night-Pass #2489 has been transferred.</p>
+                    <button id="close-transfer-success" class="w-full bg-primary-gold text-primary-dark font-bold py-3 rounded-lg text-lg">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ===== Web3 Configuration =====
+        const CONFIG = {
+            CHAIN_ID: '0x7A69', // 31337 (Local Hardhat)
+            CHAIN_NAME: 'Localhost Hardhat',
+            RPC_URL: 'http://127.0.0.1:8545',
+            EXPLORER: 'http://localhost:8545',
+            CURRENCY: {
+                name: 'ETH',
+                symbol: 'ETH',
+                decimals: 18
+            },
+            CONTRACTS: {
+                NIGHT_PASS_NFT: '0x0165878A594ca255338adfa4d48449f69242Eb8F',
+                MARKETPLACE: '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853'
+            }
+        };
+
+        const NIGHT_PASS_ABI = [
+            "function mintNightPass(address to, string hotelName, uint256 checkInDate, uint256 price, uint256 yieldPercent, string tokenURI) payable returns (uint256)",
+            "function balanceOf(address owner) view returns (uint256)",
+            "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
+            "function getNightPass(uint256 tokenId) view returns (tuple(string hotelName, uint256 checkInDate, uint256 price, uint256 yield, bool isActive, bool isUsed))",
+            "function transferFrom(address from, address to, uint256 tokenId)",
+            "function ownerOf(uint256 tokenId) view returns (address)",
+            "function approve(address to, uint256 tokenId)",
+            "function getApproved(uint256 tokenId) view returns (address)",
+            "function useNightPass(uint256 tokenId)"
+        ];
+
+        const MARKETPLACE_ABI = [
+            "function listNightPass(uint256 tokenId, uint256 price)",
+            "function buyNightPass(uint256 tokenId) payable",
+            "function cancelListing(uint256 tokenId)",
+            "function getListing(uint256 tokenId) view returns (tuple(uint256 tokenId, address seller, uint256 price, bool isActive))",
+            "event Listed(uint256 indexed tokenId, address indexed seller, uint256 price)",
+            "event Sold(uint256 indexed tokenId, address indexed seller, address indexed buyer, uint256 price)"
+        ];
+
+        // ===== Self Protocol Configuration =====
+        const SELF_CONFIG = {
+            SELF_APP_NAME: 'StayFi',
+            SELF_SCOPE: 'stayfi-rwa',
+            SELF_ENDPOINT: 'http://localhost:3001/api/verify',
+            SELF_LOGO: 'https://i.postimg.cc/mrmVf9hm/self.png',
+            // Deeplink callback - where Self app redirects after verification
+            DEEPLINK_CALLBACK: window.location.href, // Return to current page
+            VERIFICATION_CONFIG: {
+                minimumAge: 18,
+                excludedCountries: ['CUB', 'IRN', 'PRK', 'RUS'], // Cuba, Iran, North Korea, Russia
+                ofac: true,
+                nationality: true,
+                gender: false,
+            }
+        };
+
+        // ===== Wallet Connection Variables =====
+        let provider = null;
+        let signer = null;
+        let userAddress = null;
+        let nftContract = null;
+        let marketplaceContract = null;
+        let currentTransferTokenId = null; // Store the token ID being transferred
+        let currentListingTokenId = null; // Store the token ID being listed
+        let currentBuyTokenId = null; // Store the token ID being bought
+        let currentBuyPrice = null; // Store the price of item being bought
+        let zkProofVerified = false; // Track if user has verified ZK proof
+        let currentHotelData = null; // Store the currently selected hotel for minting
+        let userEarnings = 0; // Store accumulated earnings (in demo mode)
+        let totalDebt = 0; // Store total accumulated debt from borrowing
+        let lastClaimTime = Date.now(); // Track last time rewards were claimed
+        let claimedTotal = 0; // Track total claimed rewards
+        
+        // Self Protocol Variables
+        let selfApp = null;
+        let universalLink = '';
+        let selfPollInterval = null;
+        let selfPollCount = 0;
+        const SELF_MAX_POLLS = 60; // 5 minutes with 5 second intervals
+
+        // ===== ZK Proof System =====
+        const ZKProofSystem = {
+            // Generate a commitment (hash) for private data
+            async generateCommitment(data) {
+                const encoder = new TextEncoder();
+                const dataBuffer = encoder.encode(JSON.stringify(data));
+                const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            },
+
+            // Generate ZK Proof for KYC (Age 18+, Non-sanctioned)
+            async generateKYCProof(userAge, country) {
+                console.log('🔐 Generating ZK Proof for KYC...');
+                
+                // Private inputs (not revealed)
+                const privateData = {
+                    age: userAge,
+                    country: country,
+                    timestamp: Date.now()
+                };
+                
+                // Public output: proof that conditions are met
+                const isAgeValid = userAge >= 18;
+                const isSanctioned = ['KP', 'IR', 'SY', 'CU'].includes(country); // Sanctioned countries
+                const isCountryValid = !isSanctioned;
+                
+                // Generate commitment (hash of private data)
+                const commitment = await this.generateCommitment(privateData);
+                
+                // Simulate ZK proof generation (in production, use circuit)
+                const proof = {
+                    commitment: commitment,
+                    isAgeValid: isAgeValid,
+                    isCountryValid: isCountryValid,
+                    nullifier: await this.generateCommitment({ commitment, rand: Math.random() }),
+                    timestamp: Date.now()
+                };
+                
+                console.log('✅ ZK Proof generated:', {
+                    ageValid: isAgeValid,
+                    countryValid: isCountryValid,
+                    commitment: commitment.substring(0, 16) + '...'
+                });
+                
+                return proof;
+            },
+
+            // Verify KYC ZK Proof
+            verifyKYCProof(proof) {
+                console.log('🔍 Verifying ZK Proof...');
+                
+                // Verify that proof is well-formed
+                if (!proof || !proof.commitment || !proof.nullifier) {
+                    console.error('❌ Invalid proof structure');
+                    return false;
+                }
+                
+                // Check that all conditions are met (public outputs)
+                const isValid = proof.isAgeValid && proof.isCountryValid;
+                
+                // Check timestamp is recent (within 5 minutes)
+                const isRecent = (Date.now() - proof.timestamp) < 5 * 60 * 1000;
+                
+                console.log('✅ Proof verification result:', isValid && isRecent);
+                return isValid && isRecent;
+            },
+
+            // Generate ZK Proof for NFT ownership (without revealing private key)
+            async generateOwnershipProof(tokenId, ownerAddress) {
+                console.log('🔐 Generating ZK Proof for NFT ownership...');
+                
+                // In production, this would use the wallet's signature
+                // We simulate proving ownership without revealing private key
+                
+                const message = `StayFi-CheckIn-${tokenId}-${Date.now()}`;
+                let signature = null;
+                
+                try {
+                    // Request signature from wallet (proves ownership without revealing key)
+                    if (signer) {
+                        signature = await signer.signMessage(message);
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to generate signature:', error);
+                }
+                
+                const proof = {
+                    tokenId: tokenId,
+                    message: message,
+                    signature: signature,
+                    address: ownerAddress,
+                    timestamp: Date.now()
+                };
+                
+                console.log('✅ Ownership proof generated for token:', tokenId);
+                return proof;
+            },
+
+            // Verify ownership proof
+            async verifyOwnershipProof(proof, expectedAddress) {
+                console.log('🔍 Verifying ownership proof...');
+                
+                if (!proof || !proof.signature) {
+                    console.error('❌ Invalid proof structure');
+                    return false;
+                }
+                
+                try {
+                    // Recover address from signature
+                    const recoveredAddress = ethers.utils.verifyMessage(proof.message, proof.signature);
+                    
+                    // Check if recovered address matches expected owner
+                    const isValid = recoveredAddress.toLowerCase() === expectedAddress.toLowerCase();
+                    
+                    console.log('✅ Ownership verification result:', isValid);
+                    return isValid;
+                } catch (error) {
+                    console.error('❌ Verification failed:', error);
+                    return false;
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const screens = document.querySelectorAll('.screen');
+            const tabBar = document.getElementById('tab-bar');
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const modals = document.querySelectorAll('.modal');
+            let currentWalletAction = null; // Stores the current wallet action
+
+            // Function to show a specific screen
+            function showScreen(screenId) {
+                // Hide all screens
+                screens.forEach(screen => screen.classList.add('hidden'));
+                
+                // Show target screen
+                const targetScreen = document.getElementById(screenId);
+                if (targetScreen) {
+                    targetScreen.classList.remove('hidden');
+                    targetScreen.classList.add('animate-fade-in');
+                }
+                
+                // Load NFTs when entering MyPass screen
+                if (screenId === 'screen-mypass' && nftContract && userAddress) {
+                    loadUserNFTs();
+                }
+                
+                // Load NFTs for Proof screen dropdown
+                if (screenId === 'screen-proof' && nftContract && userAddress) {
+                    loadProofNFTList();
+                }
+                
+                // Load earnings data when entering Earnings screen
+                if (screenId === 'screen-earnings' && nftContract && userAddress) {
+                    loadEarningsData();
+                }
+                
+                // Update Profile wallet address when entering Profile screen
+                if (screenId === 'screen-profile') {
+                    if (typeof updateProfileWalletAddress === 'function') {
+                        updateProfileWalletAddress().catch(e => console.warn('Profile update failed:', e));
+                    }
+                }
+                
+                // Initialize Self Protocol when entering ZK Module
+                if (screenId === 'screen-zk-module') {
+                    // Small delay to let UI render first
+                    setTimeout(() => initializeSelfProtocol(), 300);
+                }
+
+                // Toggle Tab Bar visibility
+                if (['screen-login', 'screen-zk-module', 'screen-loading-spinner', 'screen-zk-fail', 'screen-wallet-connecting'].includes(screenId)) {
+                    tabBar.style.display = 'none';
+                } else {
+                    tabBar.style.display = 'flex';
+                }
+
+                // Update Tab Bar active state
+                tabButtons.forEach(button => {
+                    if (button.dataset.screen === screenId) {
+                        button.classList.remove('text-gray-400');
+                        button.classList.add('text-primary-gold');
+                    } else {
+                        button.classList.remove('text-primary-gold');
+                        button.classList.add('text-gray-400');
+                    }
+                });
+            }
+
+            // Functions to show/hide Modals
+            function showModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) modal.classList.remove('hidden');
+                
+                // Generate QR Code when opening QR modal
+                if (modalId === 'modal-qr-code') {
+                    generateQRCode();
+                }
+            }
+
+            function hideModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) modal.classList.add('hidden');
+                
+                // Clear QR Code when closing modal
+                if (modalId === 'modal-qr-code') {
+                    const container = document.getElementById('qrcode-container');
+                    if (container) container.innerHTML = '';
+                }
+            }
+
+            // Update hotel modal content dynamically
+            function updateHotelModal(hotelData) {
+                console.log('🏨 Updating modal with hotel:', hotelData.name);
+                
+                // Store the hotel data for minting
+                currentHotelData = hotelData;
+                
+                // Update image
+                const imageEl = document.getElementById('modal-hotel-image');
+                if (imageEl) imageEl.src = hotelData.image;
+                
+                // Update name
+                const nameEl = document.getElementById('modal-hotel-name');
+                if (nameEl) nameEl.textContent = hotelData.name;
+                
+                // Update price
+                const priceEl = document.getElementById('modal-hotel-price');
+                if (priceEl) priceEl.textContent = `Price: ${hotelData.price} USDC`;
+                
+                // Update yield
+                const yieldEl = document.getElementById('modal-hotel-yield');
+                if (yieldEl) yieldEl.textContent = `Yield: +${hotelData.yield}%`;
+                
+                // Update description
+                const descEl = document.getElementById('modal-hotel-desc');
+                if (descEl) descEl.textContent = hotelData.desc;
+                
+                // Update currency selector
+                const usdcOption = document.getElementById('currency-usdc-option');
+                if (usdcOption) {
+                    usdcOption.textContent = `${hotelData.price} USDC`;
+                    usdcOption.dataset.price = `${hotelData.price} USDC`;
+                }
+            }
+
+            // Bind all navigation buttons (data-target)
+            document.body.addEventListener('click', (e) => {
+                const button = e.target.closest('[data-target]');
+                if (button) {
+                    e.preventDefault();
+                    const targetId = button.dataset.target;
+                    showScreen(targetId);
+
+                    // Execute real ZK Proof generation for KYC
+                    if (targetId === 'screen-loading-spinner') {
+                        executeKYCProofGeneration();
+                    }
+
+                }
+
+                // Bind Modal open buttons (data-modal)
+                const modalButton = e.target.closest('[data-modal]');
+                if (modalButton) {
+                    e.preventDefault();
+                    console.log('Modal button clicked:', modalButton.dataset.modal, 'action:', modalButton.dataset.action);
+                    
+                    // Update modal content for hotel cards
+                    if (modalButton.dataset.modal === 'modal-mint-detail' && modalButton.dataset.hotelName) {
+                        updateHotelModal({
+                            name: modalButton.dataset.hotelName,
+                            price: modalButton.dataset.hotelPrice,
+                            yield: modalButton.dataset.hotelYield,
+                            image: modalButton.dataset.hotelImage,
+                            desc: modalButton.dataset.hotelDesc
+                        });
+                    }
+                    
+                    // Capture token ID for transfer
+                    if (modalButton.dataset.modal === 'modal-transfer-menu' && modalButton.dataset.tokenId) {
+                        currentTransferTokenId = modalButton.dataset.tokenId;
+                        console.log('🎫 Transfer token ID set to:', currentTransferTokenId);
+                    }
+                    
+                    // Capture token ID for listing
+                    if (modalButton.dataset.modal === 'modal-sell-listing' && modalButton.dataset.tokenId) {
+                        currentListingTokenId = modalButton.dataset.tokenId;
+                        console.log('🏷️ Listing token ID set to:', currentListingTokenId);
+                    }
+                    
+                    // Capture token ID and price for buying
+                    if (modalButton.dataset.action === 'buy_item' && modalButton.dataset.tokenId) {
+                        currentBuyTokenId = parseInt(modalButton.dataset.tokenId);
+                        currentBuyPrice = modalButton.dataset.price;
+                        console.log('🛍️ Buy token ID set to:', currentBuyTokenId, 'Price:', currentBuyPrice);
+                    }
+                    
+                    // Check if it's a wallet action
+                    if (modalButton.dataset.action) {
+                        currentWalletAction = modalButton.dataset.action;
+                        console.log('Current wallet action set to:', currentWalletAction);
+                        // Update wallet modal content
+                        const walletActionEl = document.getElementById('wallet-action');
+                        const walletAmountEl = document.getElementById('wallet-amount');
+                        
+                        if (currentWalletAction === 'mint') {
+                            // Read selected currency
+                            const currencySelect = document.getElementById('currency-select');
+                            const selectedOption = currencySelect.options[currencySelect.selectedIndex];
+                            
+                            walletActionEl.textContent = 'Mint Night-Pass';
+                            walletAmountEl.textContent = selectedOption.dataset.price || '120 USDC';
+                        
+                        } else if (currentWalletAction === 'add_funds') {
+                            walletActionEl.textContent = 'Add Funds';
+                            walletAmountEl.textContent = '50 USDC (Demo)';
+                        
+                        } else if (currentWalletAction === 'claim') {
+                            walletActionEl.textContent = 'Claim Rewards';
+                            walletAmountEl.textContent = `${userEarnings ? userEarnings.toFixed(2) : '0.00'} USDC`;
+                        
+                        } else if (currentWalletAction === 'list_item') {
+                            // This is a listing, cost is Gas
+                            hideModal('modal-sell-listing');
+                            walletActionEl.textContent = 'List Item (Gas)';
+                            walletAmountEl.textContent = '~ 0.02 Celo';
+                        
+                        } else if (currentWalletAction === 'buy_item') {
+                            // This is a market purchase
+                            walletActionEl.textContent = 'Buy Night-Pass';
+                            walletAmountEl.textContent = '105 USDC (Demo)';
+                        
+                        } else if (currentWalletAction === 'borrow') {
+                            // Borrow
+                            const amount = document.getElementById('borrow-amount-input').value;
+                            walletActionEl.textContent = 'Borrow (Collateralized)';
+                            walletAmountEl.textContent = `${amount || 0} USDC`;
+                            hideModal('modal-borrow');
+                        
+                        } else if (currentWalletAction === 'transfer') {
+                            // NEW: Transfer
+                            walletActionEl.textContent = 'Transfer Pass (Gas)';
+                            walletAmountEl.textContent = '~ 0.03 Celo';
+                            hideModal('modal-transfer-verify');
+                        }
+                    }
+                    
+                    // Close the current Mint Detail modal (if open) before opening the wallet
+                    if (currentWalletAction === 'mint') {
+                        hideModal('modal-mint-detail');
+                    }
+
+                    showModal(modalButton.dataset.modal);
+                }
+
+                // Bind Modal close buttons (data-modal-close)
+                const modalCloseButton = e.target.closest('[data-modal-close]');
+                if (modalCloseButton) {
+                    e.preventDefault();
+                    const modalToClose = modalCloseButton.closest('.modal');
+                    if (modalToClose) modalToClose.classList.add('hidden');
+                }
+            });
+
+            // ===== Bind Wallet Confirm Button =====
+            const walletConfirmButton = document.getElementById('wallet-confirm-button');
+            walletConfirmButton.addEventListener('click', () => {
+                console.log('Wallet confirm button clicked, current action:', currentWalletAction);
+                hideModal('modal-wallet-confirm');
+
+                // Execute different flows based on the action
+                if (currentWalletAction === 'mint') {
+                    console.log('Executing mint flow...');
+                    // Execute REAL Mint flow
+                    executeMintNFT();
+                } else if (currentWalletAction === 'add_funds') {
+                    // Execute Add Funds flow
+                    executeAddFunds();
+                } else if (currentWalletAction === 'claim') {
+                    // Execute REAL Claim Rewards flow
+                    executeClaimRewards();
+                } else if (currentWalletAction === 'list_item') {
+                    // Execute REAL List Item flow
+                    executeListNFT();
+                } else if (currentWalletAction === 'buy_item') {
+                    // Execute REAL Buy Item flow
+                    executeBuyNFT();
+                
+                } else if (currentWalletAction === 'borrow') {
+                    // Execute Borrow flow
+                    const amount = document.getElementById('borrow-amount-input').value || 0;
+                    executeBorrow(amount);
+                    // Clear input
+                    document.getElementById('borrow-amount-input').value = '';
+
+                } else if (currentWalletAction === 'transfer') {
+                    // Execute REAL Transfer flow
+                    executeTransferNFT();
+                }
+                
+                currentWalletAction = null; // Reset action
+            });
+
+            // Bind Mint Success navigation
+            const closeMintSuccessButton = document.getElementById('close-mint-success');
+            closeMintSuccessButton.addEventListener('click', async () => {
+                hideModal('modal-mint-success');
+                showScreen('screen-mypass');
+                await loadUserNFTs(); // Load NFTs when entering MyPass
+            });
+            
+            // ===== NEW: Bind List Success navigation =====
+            const closeListSuccessButton = document.getElementById('close-list-success');
+            closeListSuccessButton.addEventListener('click', async () => {
+                hideModal('modal-list-success');
+                showScreen('screen-mypass');
+                // Reload lists to show updated status
+                await loadUserNFTs();
+                await loadMarketplaceListings();
+            });
+
+            // ===== NEW: Bind Transfer Success navigation =====
+            const closeTransferSuccessButton = document.getElementById('close-transfer-success');
+            closeTransferSuccessButton.addEventListener('click', async () => {
+                hideModal('modal-transfer-success');
+                showScreen('screen-mypass');
+                await loadUserNFTs(); // Reload NFT list
+            });
+
+            // ===== NEW: Bind Transfer Menu -> Transfer Verify =====
+            const openTransferVerifyBtn = document.getElementById('open-transfer-verify-btn');
+            openTransferVerifyBtn.addEventListener('click', () => {
+                hideModal('modal-transfer-menu');
+                showModal('modal-transfer-verify');
+                // Reset verification status
+                document.getElementById('verify-status-text').textContent = '';
+                document.getElementById('recipient-address-input').value = '';
+                document.getElementById('confirm-transfer-btn').disabled = true;
+            });
+
+            // ===== NEW: Bind Compliant Verify Button =====
+            const verifyRecipientBtn = document.getElementById('verify-recipient-btn');
+            const verifyStatusText = document.getElementById('verify-status-text');
+            const recipientAddressInput = document.getElementById('recipient-address-input');
+            const confirmTransferBtn = document.getElementById('confirm-transfer-btn');
+
+            verifyRecipientBtn.addEventListener('click', () => {
+                verifyRecipientBtn.disabled = true;
+                verifyStatusText.textContent = 'Verifying recipient...';
+                verifyStatusText.className = 'text-sm font-medium mt-3 h-10 text-center text-gray-500';
+                confirmTransferBtn.disabled = true;
+
+                const address = recipientAddressInput.value.toLowerCase();
+
+                setTimeout(() => {
+                    if (address.includes('fail')) {
+                        // Simulate fail
+                        verifyStatusText.textContent = '❌ Verification Failed: Recipient is not verified or non-compliant.';
+                        verifyStatusText.className = 'text-sm font-medium mt-3 h-10 text-center text-red-600';
+                        verifyRecipientBtn.disabled = false;
+                    } else if (address.startsWith('0x')) {
+                        // Simulate success
+                        verifyStatusText.textContent = '✅ Verification Success: Recipient is compliant.';
+                        verifyStatusText.className = 'text-sm font-medium mt-3 h-10 text-center text-green-600';
+                        verifyRecipientBtn.disabled = false;
+                        confirmTransferBtn.disabled = false; // **Unlock transfer button**
+                    } else {
+                        // Simulate invalid input
+                        verifyStatusText.textContent = 'Please enter a valid wallet address.';
+                        verifyStatusText.className = 'text-sm font-medium mt-3 h-10 text-center text-yellow-600';
+                        verifyRecipientBtn.disabled = false;
+                    }
+                }, 2000); // Simulate 2s ZK verification
+            });
+
+
+            // ===== Execute KYC Proof Generation =====
+            async function executeKYCProofGeneration() {
+                try {
+                    console.log('🚀 Starting KYC Proof generation...');
+                    
+                    // Simulate user data (in production, get from secure source)
+                    const userData = {
+                        age: 25, // Demo: user is 25 years old
+                        country: 'TW' // Demo: Taiwan (non-sanctioned)
+                    };
+                    
+                    // Generate ZK Proof
+                    const proof = await ZKProofSystem.generateKYCProof(userData.age, userData.country);
+                    
+                    // Verify the proof
+                    const isValid = ZKProofSystem.verifyKYCProof(proof);
+                    
+                    // Wait 2.5 seconds to simulate processing
+                    await new Promise(resolve => setTimeout(resolve, 2500));
+                    
+                    if (isValid) {
+                        console.log('✅ KYC Proof verified successfully!');
+                        zkProofVerified = true;
+                        showScreen('screen-explore');
+                    } else {
+                        console.error('❌ KYC Proof verification failed');
+                        showScreen('screen-zk-fail');
+                    }
+                } catch (error) {
+                    console.error('❌ Error during KYC proof generation:', error);
+                    showScreen('screen-zk-fail');
+                }
+            }
+
+            // ===== Execute Ownership Proof for Check-in =====
+            async function executeOwnershipProof(tokenId) {
+                try {
+                    console.log('🚀 Generating ownership proof for token:', tokenId);
+                    
+                    if (!userAddress || !signer) {
+                        console.error('❌ Wallet not connected');
+                        alert('Please connect wallet first');
+                        return null;
+                    }
+                    
+                    // Generate ZK Proof for ownership
+                    const proof = await ZKProofSystem.generateOwnershipProof(tokenId, userAddress);
+                    
+                    // Verify the proof
+                    const isValid = await ZKProofSystem.verifyOwnershipProof(proof, userAddress);
+                    
+                    if (isValid) {
+                        console.log('✅ Ownership proof verified!');
+                        return proof;
+                    } else {
+                        console.error('❌ Ownership proof verification failed');
+                        return null;
+                    }
+                } catch (error) {
+                    console.error('❌ Error generating ownership proof:', error);
+                    return null;
+                }
+            }
+
+            // ===== Generate QR Code Function (with ZK Proof) =====
+            async function generateQRCode() {
+                const container = document.getElementById('qrcode-container');
+                if (!container) return;
+                
+                // Clear any existing QR code
+                container.innerHTML = '';
+                
+                // Get selected token ID
+                const select = document.getElementById('proof-nft-select');
+                const tokenId = select ? select.value : 'N/A';
+                
+                // Generate ownership proof
+                let zkProof = null;
+                if (tokenId && tokenId !== 'N/A') {
+                    zkProof = await executeOwnershipProof(tokenId);
+                }
+                
+                // Create QR code data (JSON string with proof info)
+                const qrData = JSON.stringify({
+                    app: 'StayFi',
+                    action: 'check-in',
+                    tokenId: tokenId,
+                    address: userAddress || 'Unknown',
+                    timestamp: Date.now(),
+                    zkProof: zkProof ? {
+                        signature: zkProof.signature,
+                        message: zkProof.message
+                    } : 'not-generated'
+                });
+                
+                // Generate QR code
+                try {
+                    new QRCode(container, {
+                        text: qrData,
+                        width: 250,
+                        height: 250,
+                        colorDark: '#1E293B',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                    console.log('✅ QR Code generated for token:', tokenId);
+                } catch (error) {
+                    console.error('❌ Error generating QR code:', error);
+                    container.innerHTML = '<p class="text-red-500">Failed to generate QR Code</p>';
+                }
+            }
+
+            // ===== Bind Confirm Check-in Button =====
+            const confirmCheckinBtn = document.getElementById('confirm-checkin-btn');
+            if (confirmCheckinBtn) {
+                confirmCheckinBtn.addEventListener('click', () => {
+                    // Get selected token ID from proof dropdown
+                    const select = document.getElementById('proof-nft-select');
+                    const tokenId = select ? parseInt(select.value) : null;
+                    
+                    if (!tokenId && tokenId !== 0) {
+                        alert('請先選擇一個 Night-Pass / Please select a Night-Pass first');
+                        return;
+                    }
+                    
+                    console.log('🎫 Confirm check-in for token:', tokenId);
+                    hideModal('modal-qr-code');
+                    executeUseNightPass(tokenId);
+                });
+            }
+
+            // ===== NEW: Bind MyPass Top TABS =====
+            const tabMyPasses = document.getElementById('tab-my-passes');
+            const tabMarketplace = document.getElementById('tab-marketplace');
+            const viewMyPasses = document.getElementById('mypass-nft-list');
+            const viewMarketplace = document.getElementById('mypass-marketplace-view');
+            const viewEmpty = document.getElementById('mypass-empty'); // Get empty state
+
+            tabMyPasses.addEventListener('click', () => {
+                // Activate My Passes Tab
+                tabMyPasses.classList.add('bg-white', 'shadow', 'text-primary-gold');
+                tabMyPasses.classList.remove('text-gray-500');
+                // Deactivate Marketplace Tab
+                tabMarketplace.classList.remove('bg-white', 'shadow', 'text-primary-gold');
+                tabMarketplace.classList.add('text-gray-500');
+                
+                // Show/Hide content
+                // Check if MyPasses exists, if not, show empty state
+                const hasPasses = viewMyPasses.querySelector('.bg-white'); // Check for cards
+                if (hasPasses) {
+                    viewMyPasses.classList.remove('hidden');
+                    viewEmpty.classList.add('hidden');
+                } else {
+                    viewMyPasses.classList.add('hidden');
+                    viewEmpty.classList.remove('hidden');
+                }
+                viewMarketplace.classList.add('hidden');
+            });
+
+            tabMarketplace.addEventListener('click', () => {
+                // Activate Marketplace Tab
+                tabMarketplace.classList.add('bg-white', 'shadow', 'text-primary-gold');
+                tabMarketplace.classList.remove('text-gray-500');
+                // Deactivate My Passes Tab
+                tabMyPasses.classList.remove('bg-white', 'shadow', 'text-primary-gold');
+                tabMyPasses.classList.add('text-gray-500');
+                
+                // Show/Hide content
+                viewMyPasses.classList.add('hidden');
+                viewEmpty.classList.add('hidden');
+                viewMarketplace.classList.remove('hidden');
+                
+                // Load marketplace listings
+                loadMarketplaceListings();
+            });
+            
+            // ===== NEW: Bind AI Pricing Button =====
+            const aiPriceBtn = document.getElementById('ai-price-btn');
+            const aiSuggestionText = document.getElementById('ai-suggestion-text');
+            const sellPriceInput = document.getElementById('sell-price-input');
+
+            aiPriceBtn.addEventListener('click', async () => {
+                aiPriceBtn.disabled = true;
+                aiPriceBtn.textContent = '🤖 Analyzing...';
+                aiSuggestionText.textContent = '🔍 Analyzing market trends, competitor pricing, demand...';
+                
+                try {
+                    // Get current NFT data if available
+                    let basePrice = 120;
+                    let hotelName = 'Unknown';
+                    
+                    if (currentListingTokenId && nftContract) {
+                        const nightPass = await nftContract.getNightPass(currentListingTokenId);
+                        basePrice = nightPass.price.toNumber() / 1e6; // Convert from 6 decimals
+                        hotelName = nightPass.hotelName;
+                    }
+                    
+                    // Simulate AI analysis with realistic factors
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // AI pricing algorithm (demo)
+                    const marketDemand = 0.95 + Math.random() * 0.15; // 0.95-1.10x
+                    const timeDecay = 0.98; // Small discount for time value
+                    const aiMultiplier = marketDemand * timeDecay;
+                    const suggestedPrice = Math.floor(basePrice * aiMultiplier);
+                    
+                    // Confidence metrics
+                    const confidence = Math.floor(82 + Math.random() * 12); // 82-94%
+                    const sellThroughRate = Math.floor(78 + Math.random() * 18); // 78-96%
+                    
+                    sellPriceInput.value = suggestedPrice;
+                    aiSuggestionText.innerHTML = `
+                        <span class="text-green-600">✅ AI Suggests: ${suggestedPrice} USDC</span><br>
+                        <span class="text-xs text-gray-500">
+                            Confidence: ${confidence}% | Sell-through: ${sellThroughRate}% | Avg. time to sell: 2.3 days
+                        </span>
+                    `;
+                    
+                    console.log(`🤖 AI Pricing for ${hotelName}: ${suggestedPrice} USDC (base: ${basePrice}, multiplier: ${aiMultiplier.toFixed(2)}x)`);
+                    
+                } catch (error) {
+                    console.error('AI pricing error:', error);
+                    aiSuggestionText.textContent = '❌ Failed to analyze. Please try again.';
+                }
+                
+                aiPriceBtn.disabled = false;
+                aiPriceBtn.textContent = '🤖 AI Suggest';
+            });
+
+
+            // ===== Real Wallet Connection =====
+            const connectWalletBtn = document.getElementById('connect-wallet-btn');
+            if (connectWalletBtn) {
+                connectWalletBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    try {
+                        // Check if ethers.js is loaded
+                        if (typeof window.ethers === 'undefined') {
+                            alert('正在載入 Web3 程式庫，請稍後再試...\n\nLoading Web3 library, please try again...');
+                            return;
+                        }
+                        
+                        // Check if Web3 wallet is available
+                        if (typeof window.ethereum === 'undefined') {
+                            alert('請先安裝 MetaMask、imToken 或其他 Web3 錢包！\n\nPlease install MetaMask, imToken, or another Web3 wallet first!');
+                            return;
+                        }
+                        
+                        // Detect wallet type
+                        let walletName = 'Web3 Wallet';
+                        if (window.ethereum.isImToken || window.imToken) {
+                            walletName = 'imToken';
+                            console.log('✅ Detected imToken wallet');
+                        } else if (window.ethereum.isMetaMask) {
+                            walletName = 'MetaMask';
+                            console.log('✅ Detected MetaMask wallet');
+                        }
+
+                        // Show connecting screen
+                        showScreen('screen-wallet-connecting');
+                        document.getElementById('wallet-connecting-message').textContent = `請在 ${walletName} 中確認連接... / Please confirm in ${walletName}...`;
+
+                        // Request wallet connection
+                        await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        
+                        provider = new window.ethers.providers.Web3Provider(window.ethereum);
+                        signer = provider.getSigner();
+                        userAddress = await signer.getAddress();
+
+                        // Get balance
+                        const balance = await provider.getBalance(userAddress);
+                        const balanceInEther = window.ethers.utils.formatEther(balance);
+
+                        // Update UI with wallet info
+                        document.getElementById('connected-address').textContent = userAddress;
+                        document.getElementById('connected-balance').textContent = `Balance: ${parseFloat(balanceInEther).toFixed(4)} ETH`;
+                        document.getElementById('wallet-connected-info').classList.remove('hidden');
+                        document.getElementById('wallet-connecting-message').textContent = `✅ ${walletName} 連接成功！/ ${walletName} connected successfully!`;
+
+                        console.log(`✅ ${walletName} connected:`, userAddress);
+                        
+                        // Initialize NFT contract
+                        nftContract = new window.ethers.Contract(
+                            CONFIG.CONTRACTS.NIGHT_PASS_NFT,
+                            NIGHT_PASS_ABI,
+                            signer
+                        );
+                        console.log('📜 NFT Contract initialized');
+                        
+                        // Initialize Marketplace contract
+                        marketplaceContract = new window.ethers.Contract(
+                            CONFIG.CONTRACTS.MARKETPLACE,
+                            MARKETPLACE_ABI,
+                            signer
+                        );
+                        console.log('🏪 Marketplace Contract initialized');
+
+                        // Update Profile wallet address
+                        if (typeof updateProfileWalletAddress === 'function') {
+                            try { await updateProfileWalletAddress(); } catch (e) { console.warn('Profile update failed:', e); }
+                        }
+
+                        // After 2 seconds, go to ZK module
+                        setTimeout(() => {
+                            showScreen('screen-zk-module');
+                        }, 2000);
+
+                    } catch (error) {
+                        console.error('❌ Wallet connection error:', error);
+                        alert('錢包連接失敗 / Wallet connection failed: ' + error.message);
+                        showScreen('screen-login');
+                    }
+                });
+            }
+
+            // Check if running in imToken environment on page load
+            function detectImTokenEnvironment() {
+                if (window.ethereum && (window.ethereum.isImToken || window.imToken)) {
+                    console.log('🎯 Running in imToken WebView environment');
+                    
+                    // Get language from imToken if available
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const locale = urlParams.get('locale');
+                    if (locale) {
+                        console.log('🌐 imToken locale:', locale);
+                    }
+                    
+                    // Auto-detect network in imToken
+                    if (window.ethereum.chainId) {
+                        console.log('⛓️ imToken chain:', window.ethereum.chainId);
+                    }
+                    
+                    return true;
+                }
+                return false;
+            }
+            
+            // Run imToken detection
+            const isImTokenEnv = detectImTokenEnvironment();
+            
+            // Listen for account changes
+            if (window.ethereum) {
+                window.ethereum.on('accountsChanged', (accounts) => {
+                    if (accounts.length === 0) {
+                        console.log('請連接錢包 / Please connect wallet');
+                        showScreen('screen-login');
+                    } else {
+                        userAddress = accounts[0];
+                        console.log('Account changed to:', userAddress);
+                    }
+                });
+
+                window.ethereum.on('chainChanged', () => {
+                    window.location.reload();
+                });
+            }
+
+            // ===== Load Proof NFT List =====
+            async function loadProofNFTList() {
+                try {
+                    if (!nftContract || !userAddress) {
+                        console.log('⚠️ Cannot load NFTs for proof: contract or address not available');
+                        return;
+                    }
+
+                    const select = document.getElementById('proof-nft-select');
+                    if (!select) return;
+
+                    const balance = await nftContract.balanceOf(userAddress);
+                    const balanceNum = balance.toNumber();
+
+                    // Clear existing options
+                    select.innerHTML = '<option value="">Select your Night-Pass...</option>';
+
+                    if (balanceNum === 0) {
+                        select.innerHTML = '<option value="">No Night-Passes available</option>';
+                        select.disabled = true;
+                        return;
+                    }
+
+                    select.disabled = false;
+
+                    // Load each NFT
+                    for (let i = 0; i < balanceNum; i++) {
+                        const tokenId = await nftContract.tokenOfOwnerByIndex(userAddress, i);
+                        const nightPass = await nftContract.getNightPass(tokenId);
+                        
+                        // Only show Active passes (not used, not listed)
+                        if (!nightPass.isUsed && nightPass.isActive) {
+                            const option = document.createElement('option');
+                            option.value = tokenId.toString();
+                            option.textContent = `Night-Pass #${tokenId} (${nightPass.hotelName})`;
+                            select.appendChild(option);
+                        }
+                    }
+
+                } catch (error) {
+                    console.error('❌ Error loading proof NFT list:', error);
+                }
+            }
+
+            // ===== Load Marketplace Listings =====
+            async function loadMarketplaceListings() {
+                try {
+                    if (!nftContract || !marketplaceContract || !userAddress) {
+                        console.log('⚠️ Cannot load marketplace: contracts not available');
+                        return;
+                    }
+
+                    console.log('🏪 Loading marketplace listings...');
+                    const marketplaceView = document.getElementById('mypass-marketplace-view');
+                    
+                    // Get total supply (we'll check all minted NFTs)
+                    const totalSupply = await nftContract.balanceOf(userAddress);
+                    const listings = [];
+
+                    // Check listings for all possible token IDs (0 to 100 for demo)
+                    for (let tokenId = 0; tokenId < 100; tokenId++) {
+                        try {
+                            const listing = await marketplaceContract.getListing(tokenId);
+                            if (listing.isActive) {
+                                const nightPass = await nftContract.getNightPass(tokenId);
+                                const owner = await nftContract.ownerOf(tokenId);
+                                
+                                // Only show if not owned by current user
+                                if (owner.toLowerCase() !== userAddress.toLowerCase()) {
+                                    listings.push({
+                                        tokenId,
+                                        listing,
+                                        nightPass,
+                                        owner
+                                    });
+                                }
+                            }
+                        } catch (e) {
+                            // Token doesn't exist or no listing, skip
+                        }
+                    }
+
+                    console.log(`Found ${listings.length} marketplace listings`);
+
+                    if (listings.length === 0) {
+                        marketplaceView.innerHTML = '<div class="text-center mt-20"><p class="text-gray-500">No items for sale</p></div>';
+                        return;
+                    }
+
+                    // Build marketplace HTML
+                    let html = '';
+                    for (const {tokenId, listing, nightPass} of listings) {
+                        const checkInDate = new Date(nightPass.checkInDate.toNumber() * 1000);
+                        const dateStr = checkInDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        const daysLeft = Math.ceil((checkInDate - new Date()) / (1000 * 60 * 60 * 24));
+                        const priceInEth = ethers.utils.formatEther(listing.price);
+
+                        html += `
+                            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                                <div class="p-4">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h3 class="text-xl font-bold text-primary-dark">${nightPass.hotelName}</h3>
+                                            <p class="text-sm text-gray-500">Night-Pass #${tokenId}</p>
+                                        </div>
+                                        <span class="text-lg font-bold text-primary-dark">${priceInEth} ETH</span>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mt-2">Check-in: ${dateStr} (${daysLeft} Days Left)</p>
+                                    <button class="w-full bg-primary-gold text-primary-dark font-bold py-2 rounded-lg text-sm mt-4" data-modal="modal-wallet-confirm" data-action="buy_item" data-token-id="${tokenId}" data-price="${listing.price}">
+                                        Buy Now
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    marketplaceView.innerHTML = html;
+
+                } catch (error) {
+                    console.error('❌ Error loading marketplace:', error);
+                }
+            }
+
+            // ===== Load User NFTs =====
+            async function loadUserNFTs() {
+                try {
+                    if (!nftContract || !userAddress) {
+                        console.log('⚠️ Cannot load NFTs: contract or address not available');
+                        return;
+                    }
+
+                    console.log('🔍 Loading NFTs for:', userAddress);
+                    const balance = await nftContract.balanceOf(userAddress);
+                    const balanceNum = balance.toNumber();
+                    
+                    console.log(`🎫 User has ${balanceNum} NFTs`);
+
+                    const nftListContainer = document.getElementById('mypass-nft-list');
+                    const emptyState = document.getElementById('mypass-empty');
+
+                    if (balanceNum === 0) {
+                        nftListContainer.classList.add('hidden');
+                        emptyState.classList.remove('hidden');
+                        return;
+                    }
+
+                    // Show NFT list, hide empty state
+                    nftListContainer.classList.remove('hidden');
+                    emptyState.classList.add('hidden');
+
+                    // Clear existing content
+                    nftListContainer.innerHTML = '';
+
+                    // Collect all NFTs with their data
+                    const nfts = [];
+                    for (let i = 0; i < balanceNum; i++) {
+                        const tokenId = await nftContract.tokenOfOwnerByIndex(userAddress, i);
+                        const nightPass = await nftContract.getNightPass(tokenId);
+                        
+                        // Check if listed on marketplace
+                        let isListed = false;
+                        try {
+                            const listing = await marketplaceContract.getListing(tokenId);
+                            isListed = listing.isActive;
+                        } catch (e) {
+                            // Not listed
+                        }
+                        
+                        nfts.push({ tokenId, nightPass, isListed });
+                    }
+                    
+                    // Sort NFTs: Active first, then Listed, then Used at the bottom
+                    nfts.sort((a, b) => {
+                        // Used passes go to bottom
+                        if (a.nightPass.isUsed && !b.nightPass.isUsed) return 1;
+                        if (!a.nightPass.isUsed && b.nightPass.isUsed) return -1;
+                        
+                        // Listed passes come before non-listed (but after active)
+                        if (a.isListed && !b.isListed) return 1;
+                        if (!a.isListed && b.isListed) return -1;
+                        
+                        return 0; // Keep original order for same status
+                    });
+                    
+                    // Render each NFT
+                    for (const { tokenId, nightPass, isListed } of nfts) {
+                        console.log(`NFT #${tokenId}:`, nightPass);
+
+                        // Format check-in date
+                        const checkInDate = new Date(nightPass.checkInDate.toNumber() * 1000);
+                        const dateStr = checkInDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        
+                        // Calculate days left
+                        const daysLeft = Math.ceil((checkInDate - new Date()) / (1000 * 60 * 60 * 24));
+                        const daysLeftStr = daysLeft > 0 ? `${daysLeft} Days Left` : 'Expired';
+                        const daysLeftColor = daysLeft > 7 ? 'text-green-500' : 'text-red-500';
+
+                        // Status badge
+                        const statusBadge = isListed
+                            ? '<span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Listed</span>'
+                            : nightPass.isUsed 
+                            ? '<span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">Used</span>'
+                            : nightPass.isActive
+                            ? '<span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Active</span>'
+                            : '<span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Inactive</span>';
+
+                        // Create NFT card
+                        const nftCard = `
+                            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                                <div class="p-4">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h3 class="text-xl font-bold text-primary-dark">${nightPass.hotelName}</h3>
+                                            <p class="text-sm text-gray-500">Night-Pass #${tokenId.toString()}</p>
+                                        </div>
+                                        ${statusBadge}
+                                    </div>
+                                    <div class="flex items-center justify-between mt-4">
+                                        <div class="text-center">
+                                            <p class="text-xs text-gray-500">Check-in</p>
+                                            <p class="text-lg font-bold text-primary-dark">${dateStr}</p>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-lg font-bold ${daysLeftColor}">${daysLeftStr}</p>
+                                            <p class="text-xs text-gray-500">until check-in</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4">
+                                        <p class="text-xs text-gray-500">Yield: ${(nightPass.yield.toNumber() / 100).toFixed(1)}% APY</p>
+                                        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                                            <div class="bg-primary-gold h-2.5 rounded-full" style="width: 45%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2 mt-4">
+                                        ${isListed 
+                                            ? `<button class="cancel-listing-btn w-full bg-red-100 text-red-700 font-bold py-2 rounded-lg text-sm" data-token-id="${tokenId.toString()}">Cancel Listing</button>`
+                                            : nightPass.isUsed
+                                            ? `<button class="view-explorer-btn w-full bg-gray-100 text-gray-600 font-bold py-2 rounded-lg text-sm" data-token-id="${tokenId.toString()}">View on Explorer</button>`
+                                            : `<button data-modal="modal-sell-listing" data-token-id="${tokenId.toString()}" class="flex-1 bg-primary-gold text-primary-dark font-bold py-2 rounded-lg text-sm">Sell on Market</button>
+                                               <button data-modal="modal-borrow" class="flex-1 bg-gray-200 text-gray-700 font-bold py-2 rounded-lg text-sm">Borrow</button>
+                                               <button data-modal="modal-transfer-menu" data-token-id="${tokenId.toString()}" class="w-10 bg-gray-200 text-gray-700 font-bold py-2 rounded-lg text-sm">···</button>`
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        nftListContainer.innerHTML += nftCard;
+                    }
+
+                } catch (error) {
+                    console.error('❌ Error loading NFTs:', error);
+                }
+            }
+            
+            // ===== Bind Cancel Listing Buttons =====
+            document.body.addEventListener('click', (e) => {
+                const cancelBtn = e.target.closest('.cancel-listing-btn');
+                if (cancelBtn && cancelBtn.dataset.tokenId) {
+                    e.preventDefault();
+                    const tokenId = parseInt(cancelBtn.dataset.tokenId);
+                    console.log('❌ Cancel listing clicked for token:', tokenId);
+                    executeCancelListing(tokenId);
+                }
+                
+                // View on Explorer
+                const explorerBtn = e.target.closest('.view-explorer-btn');
+                if (explorerBtn && explorerBtn.dataset.tokenId) {
+                    e.preventDefault();
+                    const tokenId = parseInt(explorerBtn.dataset.tokenId);
+                    const explorerUrl = `${CONFIG.EXPLORER}/address/${CONFIG.CONTRACTS.NIGHT_PASS_NFT}?a=${tokenId}`;
+                    console.log('🔍 Opening explorer:', explorerUrl);
+                    window.open(explorerUrl, '_blank');
+                }
+                
+            });
+
+            // ===== Execute Use Night-Pass =====
+            async function executeUseNightPass(tokenId) {
+                try {
+                    if (!signer || !userAddress || !nftContract) {
+                        alert('請先連接錢包 / Please connect wallet first');
+                        return;
+                    }
+
+                    if (!confirm(`確定要使用 Night-Pass #${tokenId} 嗎？使用後將無法轉讓或交易。 / Use Night-Pass #${tokenId}? Once used, it cannot be transferred or sold.`)) {
+                        return;
+                    }
+
+                    showModal('modal-mint-loading');
+                    console.log(`🎫 Using Night-Pass #${tokenId}`);
+
+                    // Call useNightPass on contract
+                    const useTx = await nftContract.useNightPass(tokenId);
+                    
+                    try {
+                        await useTx.wait();
+                    } catch (waitError) {
+                        // Handle MetaMask local network quirk
+                        console.warn('Wait error (may be false alarm):', waitError.message);
+                        const receipt = await provider.getTransactionReceipt(useTx.hash);
+                        if (!receipt || receipt.status !== 1) {
+                            throw waitError;
+                        }
+                        console.log('✅ Transaction actually succeeded despite error');
+                    }
+
+                    console.log('✅ Night-Pass Used! Tx:', useTx.hash);
+                    hideModal('modal-mint-loading');
+                    
+                    // Show success message
+                    alert('✅ Night-Pass 已使用！ / Night-Pass has been used!');
+                    
+                    // Reload NFT list
+                    await loadUserNFTs();
+
+                } catch (error) {
+                    hideModal('modal-mint-loading');
+                    console.error('❌ Use Night-Pass error:', error);
+                    alert('Use 失敗 / Use failed: ' + (error.message || 'Unknown error'));
+                }
+            }
+
+            // ===== Execute Cancel Listing =====
+            async function executeCancelListing(tokenId) {
+                try {
+                    if (!signer || !userAddress || !marketplaceContract) {
+                        alert('請先連接錢包 / Please connect wallet first');
+                        return;
+                    }
+
+                    if (!confirm(`確定要取消 NFT #${tokenId} 的上架嗎？ / Cancel listing for NFT #${tokenId}?`)) {
+                        return;
+                    }
+
+                    showModal('modal-mint-loading');
+                    console.log(`❌ Canceling listing for NFT #${tokenId}`);
+
+                    // Cancel listing on marketplace
+                    const cancelTx = await marketplaceContract.cancelListing(tokenId);
+                    
+                    try {
+                        await cancelTx.wait();
+                    } catch (waitError) {
+                        // Handle MetaMask local network quirk
+                        console.warn('Wait error (may be false alarm):', waitError.message);
+                        const receipt = await provider.getTransactionReceipt(cancelTx.hash);
+                        if (!receipt || receipt.status !== 1) {
+                            throw waitError;
+                        }
+                        console.log('✅ Transaction actually succeeded despite error');
+                    }
+
+                    console.log('✅ Listing Canceled! Tx:', cancelTx.hash);
+                    hideModal('modal-mint-loading');
+                    
+                    // Reload both lists
+                    await loadUserNFTs();
+                    await loadMarketplaceListings();
+
+                } catch (error) {
+                    hideModal('modal-mint-loading');
+                    console.error('❌ Cancel listing error:', error);
+                    alert('Cancel 失敗 / Cancel failed: ' + (error.message || 'Unknown error'));
+                }
+            }
+
+            // ===== Execute Real List NFT =====
+            async function executeListNFT() {
+                try {
+                    if (!signer || !userAddress || !nftContract || !marketplaceContract) {
+                        alert('請先連接錢包 / Please connect wallet first');
+                        return;
+                    }
+
+                    if (!currentListingTokenId) {
+                        alert('找不到 Token ID / Token ID not found');
+                        return;
+                    }
+
+                    const priceInput = document.getElementById('sell-price-input').value;
+                    if (!priceInput || parseFloat(priceInput) <= 0) {
+                        alert('請輸入有效的價格 / Please enter a valid price');
+                        return;
+                    }
+
+                    showModal('modal-mint-loading');
+                    console.log(`🏷️ Listing NFT #${currentListingTokenId} for ${priceInput} ETH`);
+
+                    // Step 1: Approve marketplace
+                    console.log('🔒 Step 1: Approving marketplace...');
+                    const approveTx = await nftContract.approve(
+                        CONFIG.CONTRACTS.MARKETPLACE,
+                        currentListingTokenId
+                    );
+                    await approveTx.wait();
+                    console.log('✅ Marketplace approved');
+
+                    // Step 2: List on marketplace
+                    console.log('📝 Step 2: Listing on marketplace...');
+                    const priceInWei = ethers.utils.parseEther(priceInput);
+                    const listTx = await marketplaceContract.listNightPass(
+                        currentListingTokenId,
+                        priceInWei
+                    );
+                    
+                    try {
+                        await listTx.wait();
+                    } catch (waitError) {
+                        // MetaMask sometimes throws "Unknown problem" on local networks even when tx succeeds
+                        // Check if tx is actually confirmed
+                        console.warn('Wait error (may be false alarm):', waitError.message);
+                        const receipt = await provider.getTransactionReceipt(listTx.hash);
+                        if (!receipt || receipt.status !== 1) {
+                            throw waitError; // Real error
+                        }
+                        console.log('✅ Transaction actually succeeded despite error');
+                    }
+
+                    console.log('✅ NFT Listed! Tx:', listTx.hash);
+                    hideModal('modal-mint-loading');
+                    showModal('modal-list-success');
+                    
+                    // Reset
+                    currentListingTokenId = null;
+                    document.getElementById('sell-price-input').value = '';
+                    
+                    // Reload both lists
+                    await loadUserNFTs();
+                    await loadMarketplaceListings();
+
+                } catch (error) {
+                    hideModal('modal-mint-loading');
+                    console.error('❌ List error:', error);
+                    alert('List 失敗 / List failed: ' + (error.message || 'Unknown error'));
+                }
+            }
+
+            // ===== Execute Real Buy NFT =====
+            async function executeBuyNFT() {
+                try {
+                    if (!signer || !userAddress || !marketplaceContract) {
+                        alert('請先連接錢包 / Please connect wallet first');
+                        return;
+                    }
+
+                    if (currentBuyTokenId === null) {
+                        alert('找不到 Token ID / Token ID not found');
+                        return;
+                    }
+                    
+                    const tokenId = currentBuyTokenId;
+
+                    showModal('modal-mint-loading');
+                    console.log(`🛍️ Buying NFT #${tokenId}`);
+
+                    // Get listing details
+                    const listing = await marketplaceContract.getListing(tokenId);
+                    if (!listing.isActive) {
+                        throw new Error('Listing is not active');
+                    }
+
+                    console.log('Listing price:', ethers.utils.formatEther(listing.price), 'ETH');
+
+                    // Buy NFT
+                    const buyTx = await marketplaceContract.buyNightPass(tokenId, {
+                        value: listing.price
+                    });
+                    await buyTx.wait();
+
+                    console.log('✅ NFT Purchased! Tx:', buyTx.hash);
+                    hideModal('modal-mint-loading');
+                    showScreen('screen-mypass');
+                    
+                    // Reload both lists
+                    await loadUserNFTs();
+                    await loadMarketplaceListings();
+
+                } catch (error) {
+                    hideModal('modal-mint-loading');
+                    console.error('❌ Buy error:', error);
+                    alert('Buy 失敗 / Buy failed: ' + (error.message || 'Unknown error'));
+                }
+            }
+
+            // ===== Execute Real Transfer NFT =====
+            async function executeTransferNFT() {
+                try {
+                    if (!signer || !userAddress || !nftContract) {
+                        alert('請先連接錢包 / Please connect wallet first');
+                        return;
+                    }
+
+                    if (!currentTransferTokenId) {
+                        alert('找不到 Token ID / Token ID not found');
+                        return;
+                    }
+
+                    const recipientAddress = document.getElementById('recipient-address-input').value.trim();
+                    if (!recipientAddress || !recipientAddress.startsWith('0x')) {
+                        alert('請輸入有效的錢包地址 / Please enter a valid wallet address');
+                        return;
+                    }
+
+                    showModal('modal-mint-loading');
+                    console.log(`🔄 Transferring NFT #${currentTransferTokenId} to ${recipientAddress}`);
+
+                    // Execute transfer
+                    const tx = await nftContract.transferFrom(
+                        userAddress,
+                        recipientAddress,
+                        currentTransferTokenId
+                    );
+
+                    console.log('⏳ Waiting for transaction confirmation...');
+                    await tx.wait();
+
+                    console.log('✅ NFT Transferred! Tx:', tx.hash);
+                    hideModal('modal-mint-loading');
+                    showModal('modal-transfer-success');
+                    
+                    // Update success message with token ID
+                    document.querySelector('#modal-transfer-success p').textContent = `Night-Pass #${currentTransferTokenId} has been transferred.`;
+                    
+                    // Reset
+                    currentTransferTokenId = null;
+                    document.getElementById('recipient-address-input').value = '';
+                    
+                    // Reload NFT list
+                    await loadUserNFTs();
+
+                } catch (error) {
+                    hideModal('modal-mint-loading');
+                    console.error('❌ Transfer error:', error);
+                    alert('Transfer 失敗 / Transfer failed: ' + (error.message || 'Unknown error'));
+                }
+            }
+
+            // ===== Calculate Total Earnings from NFTs =====
+            async function calculateTotalEarnings() {
+                try {
+                    if (!nftContract || !userAddress) return 0;
+                    
+                    const balance = await nftContract.balanceOf(userAddress);
+                    const balanceNum = balance.toNumber();
+                    let totalEarnings = 0;
+                    
+                    // Calculate time since last claim (in days)
+                    const timeSinceClaimMs = Date.now() - lastClaimTime;
+                    const daysSinceClaim = timeSinceClaimMs / (1000 * 60 * 60 * 24);
+                    
+                    for (let i = 0; i < balanceNum; i++) {
+                        const tokenId = await nftContract.tokenOfOwnerByIndex(userAddress, i);
+                        const nightPass = await nftContract.getNightPass(tokenId);
+                        
+                        // Calculate earnings based on time since last claim
+                        if (nightPass.isActive && !nightPass.isUsed) {
+                            const priceInUSDC = nightPass.price.toNumber() / 1e6; // Convert from 6 decimals
+                            const yieldPercent = nightPass.yield.toNumber() / 10000; // Convert 540 to 0.054
+                            const earnings = (priceInUSDC * yieldPercent * daysSinceClaim) / 365;
+                            totalEarnings += earnings;
+                        }
+                    }
+                    
+                    return totalEarnings;
+                } catch (error) {
+                    console.error('Error calculating earnings:', error);
+                    return 0;
+                }
+            }
+
+            // ===== Load and Display Earnings Data =====
+            async function loadEarningsData() {
+                try {
+                    console.log('📊 Loading earnings data...');
+                    
+                    if (!nftContract || !userAddress) {
+                        console.warn('⚠️ Wallet not connected');
+                        return;
+                    }
+                    
+                    // Get user's NFT balance
+                    const balance = await nftContract.balanceOf(userAddress);
+                    const balanceNum = balance.toNumber();
+                    
+                    // Calculate time since last claim (in days)
+                    const timeSinceClaimMs = Date.now() - lastClaimTime;
+                    const daysSinceClaim = timeSinceClaimMs / (1000 * 60 * 60 * 24);
+                    
+                    let currentEarnings = 0;
+                    let activePassCount = 0;
+                    let totalYield = 0;
+                    
+                    // Calculate stats from all NFTs
+                    for (let i = 0; i < balanceNum; i++) {
+                        const tokenId = await nftContract.tokenOfOwnerByIndex(userAddress, i);
+                        const nightPass = await nftContract.getNightPass(tokenId);
+                        
+                        if (nightPass.isActive && !nightPass.isUsed) {
+                            activePassCount++;
+                            
+                            const priceInUSDC = nightPass.price.toNumber() / 1e6;
+                            const yieldPercent = nightPass.yield.toNumber() / 10000;
+                            
+                            // Calculate earnings since last claim
+                            const earnings = (priceInUSDC * yieldPercent * daysSinceClaim) / 365;
+                            
+                            currentEarnings += earnings;
+                            totalYield += yieldPercent;
+                        }
+                    }
+                    
+                    // Calculate average APY
+                    const avgAPY = activePassCount > 0 ? (totalYield / activePassCount * 100).toFixed(1) : 0;
+                    
+                    // Update UI with current unclaimed earnings
+                    document.getElementById('earnings-total-value').textContent = `${currentEarnings.toFixed(4)} USDC`;
+                    document.getElementById('earnings-active-passes').textContent = activePassCount;
+                    document.getElementById('earnings-avg-apy').textContent = `${avgAPY}%`;
+                    document.getElementById('earnings-debt-value').textContent = `${totalDebt.toFixed(2)} USDC`;
+                    
+                    // Update wallet action amount for claim button
+                    userEarnings = currentEarnings;
+                    
+                    const hoursElapsed = (daysSinceClaim * 24).toFixed(1);
+                    console.log(`✅ Earnings loaded: ${currentEarnings.toFixed(4)} USDC (${hoursElapsed}h elapsed), ${activePassCount} passes, ${avgAPY}% APY`);
+                    
+                } catch (error) {
+                    console.error('❌ Error loading earnings data:', error);
+                }
+            }
+
+            // ===== Execute Claim Rewards =====
+            async function executeClaimRewards() {
+                try {
+                    if (!signer || !userAddress) {
+                        alert('請先連接錢包 / Please connect wallet first');
+                        return;
+                    }
+                    
+                    showModal('modal-mint-loading');
+                    console.log('💰 Claiming rewards...');
+                    
+                    // Calculate current unclaimed earnings
+                    const earnings = await calculateTotalEarnings();
+                    
+                    if (earnings <= 0) {
+                        hideModal('modal-mint-loading');
+                        alert('沒有可領取的收益 / No earnings to claim');
+                        return;
+                    }
+                    
+                    // Simulate claiming (in production, call reward contract)
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Reset claim timer and accumulate total claimed
+                    claimedTotal += earnings;
+                    lastClaimTime = Date.now();
+                    userEarnings = 0;
+                    
+                    console.log(`✅ Claimed ${earnings.toFixed(4)} USDC in rewards. Total claimed: ${claimedTotal.toFixed(2)} USDC`);
+                    hideModal('modal-mint-loading');
+                    
+                    alert(`✅ 領取成功！/ Claimed ${earnings.toFixed(4)} USDC successfully!\n\nTotal Claimed: ${claimedTotal.toFixed(2)} USDC`);
+                    showScreen('screen-earnings');
+                    
+                    // Reload earnings data to show reset
+                    await loadEarningsData();
+                    
+                } catch (error) {
+                    hideModal('modal-mint-loading');
+                    console.error('❌ Claim error:', error);
+                    alert('Claim 失敗 / Claim failed: ' + (error.message || 'Unknown error'));
+                }
+            }
+
+            // ===== Execute Borrow (Collateralized Lending) =====
+            async function executeBorrow(borrowAmount) {
+                try {
+                    if (!signer || !userAddress) {
+                        alert('請先連接錢包 / Please connect wallet first');
+                        return;
+                    }
+                    
+                    const amount = parseFloat(borrowAmount);
+                    if (isNaN(amount) || amount <= 0) {
+                        alert('請輸入有效金額 / Please enter valid amount');
+                        return;
+                    }
+                    
+                    showModal('modal-mint-loading');
+                    console.log(`💸 Borrowing ${amount} USDC against NFT collateral...`);
+                    
+                    // Simulate borrow transaction (in production, call lending contract)
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    console.log(`✅ Borrowed ${amount} USDC successfully`);
+                    hideModal('modal-mint-loading');
+                    
+                    // Accumulate total debt
+                    totalDebt += amount;
+                    
+                    // Update debt display with accumulated total
+                    document.getElementById('earnings-debt-value').textContent = `${totalDebt.toFixed(2)} USDC`;
+                    
+                    alert(`✅ 借貸成功！/ Borrowed ${amount} USDC successfully!\nTotal Debt: ${totalDebt.toFixed(2)} USDC`);
+                    showScreen('screen-earnings');
+                    
+                } catch (error) {
+                    hideModal('modal-mint-loading');
+                    console.error('❌ Borrow error:', error);
+                    alert('Borrow 失敗 / Borrow failed: ' + (error.message || 'Unknown error'));
+                }
+            }
+
+            // ===== Self Protocol: Initialize Self App (Demo Mode) =====
+            async function initializeSelfProtocol() {
+                try {
+                    console.log('🎯 Demo Mode: Initializing verification interface...');
+                    
+                    // For demo: Just setup the UI without real SDK
+                    updateSelfStatus('📱 Ready to verify. Click button above to start.', 'info');
+                    
+                    // Generate QR Code and setup deeplink button
+                    await generateSelfQRCode();
+                    
+                    console.log('✅ Demo verification interface ready');
+                    
+                } catch (error) {
+                    console.error('❌ Initialization error:', error);
+                    updateSelfStatus('Ready to verify. Click button above.', 'info');
+                }
+            }
+            
+            // ===== Self Protocol: Setup Demo Button =====
+            async function generateSelfQRCode() {
+                const mobileBtn = document.getElementById('open-self-app-btn-main');
+                const qrLoadingDiv = document.getElementById('self-qr-loading');
+                
+                try {
+                    console.log('🎯 Setting up demo verification button...');
+                    
+                    // Setup demo button click handler
+                    mobileBtn.classList.remove('hidden');
+                    mobileBtn.onclick = async () => {
+                        console.log('🎯 Demo: Simulating Self app verification flow...');
+                        
+                        // Disable button during "verification"
+                        mobileBtn.disabled = true;
+                        mobileBtn.style.opacity = '0.5';
+                        mobileBtn.innerHTML = '<span>⏳ Opening Self App...</span>';
+                        
+                        // Step 1: Pretend opening Self app
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        updateSelfStatus('📱 Self app opened... Generating proof...', 'info');
+                        
+                        // Step 2: Pretend generating ZK proof
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        updateSelfStatus('🔐 Zero-knowledge proof generated... Verifying...', 'info');
+                        
+                        // Step 3: Pretend verifying
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        
+                        // Step 4: Success - update status indicators
+                        document.getElementById('self-status-age').textContent = '✅';
+                        document.getElementById('self-status-age').parentElement.classList.remove('border-gray-600');
+                        document.getElementById('self-status-age').parentElement.classList.add('border-green-500');
+                        
+                        document.getElementById('self-status-country').textContent = '✅';
+                        document.getElementById('self-status-country').parentElement.classList.remove('border-gray-600');
+                        document.getElementById('self-status-country').parentElement.classList.add('border-green-500');
+                        
+                        document.getElementById('self-status-ofac').textContent = '✅';
+                        document.getElementById('self-status-ofac').parentElement.classList.remove('border-gray-600');
+                        document.getElementById('self-status-ofac').parentElement.classList.add('border-green-500');
+                        
+                        updateSelfStatus('✅ 驗證成功！Verification successful! Redirecting...', 'success');
+                        
+                        // Mark as verified
+                        zkProofVerified = true;
+                        
+                        // Step 5: Redirect to main app
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        showScreen('screen-explore');
+                    };
+                    
+                    // Hide loading state
+                    if (qrLoadingDiv) qrLoadingDiv.classList.add('hidden');
+                    
+                    console.log('✅ Demo button ready');
+                    
+                } catch (error) {
+                    console.error('❌ Failed to setup demo button:', error);
+                }
+            }
+            
+            // ===== Self Protocol: Start Polling =====
+            function startSelfPolling() {
+                selfPollCount = 0;
+                selfPollInterval = setInterval(async () => {
+                    selfPollCount++;
+                    console.log(`🔍 Polling for verification... (${selfPollCount}/${SELF_MAX_POLLS})`);
+                    
+                    try {
+                        // Check verification status from backend
+                        const response = await fetch(`${SELF_CONFIG.SELF_ENDPOINT}/status/${userAddress}`);
+                        const data = await response.json();
+                        
+                        if (data.verified) {
+                            clearInterval(selfPollInterval);
+                            handleSelfVerificationSuccess(data.credentialSubject);
+                        } else if (selfPollCount >= SELF_MAX_POLLS) {
+                            clearInterval(selfPollInterval);
+                            updateSelfStatus('Verification timeout. Please try demo mode.', 'error');
+                            document.getElementById('demo-buttons').classList.remove('hidden');
+                        }
+                    } catch (error) {
+                        console.error('❌ Polling error:', error);
+                        if (selfPollCount >= SELF_MAX_POLLS) {
+                            clearInterval(selfPollInterval);
+                            updateSelfStatus('Connection error. Using demo mode.', 'error');
+                            document.getElementById('demo-buttons').classList.remove('hidden');
+                        }
+                    }
+                }, 5000); // Poll every 5 seconds
+            }
+            
+            // ===== Self Protocol: Handle Success =====
+            function handleSelfVerificationSuccess(credentialSubject) {
+                console.log('✅ Self verification successful!', credentialSubject);
+                
+                // Update status indicators
+                document.getElementById('self-status-age').textContent = '✅';
+                document.getElementById('self-status-age').parentElement.classList.add('border-green-500');
+                document.getElementById('self-status-country').textContent = '✅';
+                document.getElementById('self-status-country').parentElement.classList.add('border-green-500');
+                document.getElementById('self-status-ofac').textContent = '✅';
+                document.getElementById('self-status-ofac').parentElement.classList.add('border-green-500');
+                
+                updateSelfStatus('✅ Verification successful! Redirecting...', 'success');
+                
+                // Mark as verified
+                zkProofVerified = true;
+                
+                // Show success animation then redirect to explore
+                setTimeout(() => {
+                    showScreen('screen-explore');
+                }, 1500);
+            }
+            
+            // ===== Self Protocol: Update Status Message =====
+            function updateSelfStatus(message, type = 'info') {
+                const statusDiv = document.getElementById('self-status-message');
+                const colorClasses = {
+                    'info': 'text-gray-400',
+                    'success': 'text-green-400',
+                    'error': 'text-red-400'
+                };
+                statusDiv.innerHTML = `<p class="${colorClasses[type] || colorClasses.info}">${message}</p>`;
+            }
+            
+            // ===== Demo Buttons (Test Mode) =====
+            document.addEventListener('DOMContentLoaded', () => {
+                // Demo Success
+                const demoSuccessBtn = document.getElementById('demo-success-btn');
+                if (demoSuccessBtn) {
+                    demoSuccessBtn.addEventListener('click', () => {
+                        console.log('🎯 Demo: Simulating verification success');
+                        
+                        // Update status indicators
+                        document.getElementById('self-status-age').textContent = '✅';
+                        document.getElementById('self-status-age').parentElement.classList.add('border-green-500');
+                        document.getElementById('self-status-country').textContent = '✅';
+                        document.getElementById('self-status-country').parentElement.classList.add('border-green-500');
+                        document.getElementById('self-status-ofac').textContent = '✅';
+                        document.getElementById('self-status-ofac').parentElement.classList.add('border-green-500');
+                        
+                        updateSelfStatus('✅ 驗證成功！/ Verification successful!', 'success');
+                        
+                        zkProofVerified = true;
+                        
+                        setTimeout(() => {
+                            showScreen('screen-explore');
+                        }, 1500);
+                    });
+                }
+                
+                // Demo Failure
+                const demoFailBtn = document.getElementById('demo-fail-btn');
+                if (demoFailBtn) {
+                    demoFailBtn.addEventListener('click', () => {
+                        console.log('❌ Demo: Simulating verification failure');
+                        showScreen('screen-zk-fail');
+                    });
+                }
+            });
+
+            // ===== Execute Add Funds (Stablecoin Deposit) =====
+            async function executeAddFunds() {
+                try {
+                    if (!signer || !userAddress) {
+                        alert('請先連接錢包 / Please connect wallet first');
+                        return;
+                    }
+                    
+                    showModal('modal-mint-loading');
+                    console.log('💵 Adding funds (demo 50 USDC)...');
+                    
+                    // Simulate deposit transaction (in production, call USDC contract)
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    console.log('✅ Added 50 USDC successfully');
+                    hideModal('modal-mint-loading');
+                    
+                    alert('✅ 充值成功！/ Added 50 USDC successfully!');
+                    showScreen('screen-profile');
+                    
+                } catch (error) {
+                    hideModal('modal-mint-loading');
+                    console.error('❌ Add funds error:', error);
+                    alert('Add Funds 失敗 / Add funds failed: ' + (error.message || 'Unknown error'));
+                }
+            }
+
+            // ===== Execute Real Mint NFT =====
+            async function executeMintNFT() {
+                try {
+                    if (!signer || !userAddress) {
+                        alert('請先連接錢包 / Please connect wallet first');
+                        return;
+                    }
+
+                    showModal('modal-mint-loading');
+                    console.log('🎫 Starting NFT mint...');
+
+                    // Initialize contract
+                    nftContract = new window.ethers.Contract(
+                        CONFIG.CONTRACTS.NIGHT_PASS_NFT,
+                        NIGHT_PASS_ABI,
+                        signer
+                    );
+
+                    // Use selected hotel data or default
+                    const hotelName = currentHotelData ? currentHotelData.name : "KyotoStay Hotel";
+                    const hotelPrice = currentHotelData ? currentHotelData.price : "120";
+                    const hotelYield = currentHotelData ? currentHotelData.yield : "5.4";
+                    
+                    // Mint parameters
+                    const checkInDate = Math.floor(new Date('2025-12-20').getTime() / 1000);
+                    const price = ethers.utils.parseUnits(hotelPrice, 6); // USDC (6 decimals)
+                    const yieldPercent = Math.floor(parseFloat(hotelYield) * 100); // Convert 5.4 to 540
+                    const tokenURI = "ipfs://QmExample..."; // In production, upload to IPFS first
+                    
+                    console.log(`🏨 Minting: ${hotelName}, Price: ${hotelPrice} USDC, Yield: ${hotelYield}%`);
+
+                    // Send transaction
+                    const tx = await nftContract.mintNightPass(
+                        userAddress,
+                        hotelName,
+                        checkInDate,
+                        price,
+                        yieldPercent,
+                        tokenURI,
+                        { value: ethers.utils.parseEther('0.1') } // 0.1 ETH
+                    );
+
+                    console.log('⏳ Waiting for transaction confirmation...');
+                    await tx.wait();
+
+                    console.log('✅ NFT Minted! Tx:', tx.hash);
+                    hideModal('modal-mint-loading');
+                    
+                    // Update success message with hotel name
+                    const successMsg = document.getElementById('mint-success-message');
+                    if (successMsg && currentHotelData) {
+                        successMsg.textContent = `🌙 ${currentHotelData.name} Night-Pass Created`;
+                    }
+                    
+                    showModal('modal-mint-success');
+                    
+                    // Reload NFT list
+                    await loadUserNFTs();
+
+                } catch (error) {
+                    hideModal('modal-mint-loading');
+                    console.error('❌ Mint error:', error);
+                    alert('Mint 失敗 / Mint failed: ' + (error.message || 'Unknown error'));
+                }
+            }
+
+            // ===== Profile: Update wallet data =====
+            function shortenAddress(addr) {
+                if (!addr) return '';
+                return addr.slice(0, 6) + '...' + addr.slice(-4);
+            }
+
+            async function updateProfileWalletAddress() {
+                try {
+                    // Update wallet address
+                    const addrEl = document.getElementById('profile-wallet-address');
+                    if (addrEl && userAddress) {
+                        addrEl.textContent = shortenAddress(userAddress);
+                        console.log('✅ Profile wallet address updated:', shortenAddress(userAddress));
+                    }
+
+                    // Update balances if wallet is connected
+                    if (provider && userAddress) {
+                        await updateProfileBalances();
+                    }
+                } catch (err) {
+                    console.warn('Profile address update error:', err);
+                }
+            }
+
+            async function updateProfileBalances() {
+                try {
+                    if (!provider || !userAddress) return;
+
+                    console.log('💰 Updating Profile balances...');
+
+                    // Get main balance (ETH/CELO)
+                    const balance = await provider.getBalance(userAddress);
+                    const balanceInEth = ethers.utils.formatEther(balance);
+                    const mainBalance = parseFloat(balanceInEth).toFixed(2);
+
+                    // Determine currency symbol
+                    const network = await provider.getNetwork();
+                    const isCelo = [42220, 44787].includes(network.chainId); // Celo Mainnet & Alfajores
+                    const currencySymbol = isCelo ? 'CELO' : 'ETH';
+
+                    // Update USDC display (use main balance for now)
+                    const usdcEl = document.getElementById('profile-balance-usdc');
+                    if (usdcEl) {
+                        usdcEl.textContent = mainBalance;
+                    }
+
+                    // Update SUI display (use 0.00 or fetch if SUI contract exists)
+                    const suiEl = document.getElementById('profile-balance-sui');
+                    if (suiEl) {
+                        // For now, show the same balance or 0
+                        // In production, you would query a SUI token contract
+                        suiEl.textContent = '0.00';
+                    }
+
+                    console.log(`✅ Balances updated: ${mainBalance} ${currencySymbol}`);
+
+                } catch (err) {
+                    console.warn('Balance update error:', err);
+                }
+            }
+
+            // ===== Profile: Setup button listeners =====
+            document.addEventListener('DOMContentLoaded', () => {
+                // Copy address button
+                const copyBtn = document.getElementById('profile-copy-address');
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', async () => {
+                        if (!userAddress) {
+                            alert('请先连接钱包 / Please connect wallet first');
+                            return;
+                        }
+                        try {
+                            await navigator.clipboard.writeText(userAddress);
+                            // Show feedback
+                            const originalTitle = copyBtn.title;
+                            copyBtn.title = '✅ Copied!';
+                            setTimeout(() => {
+                                copyBtn.title = originalTitle;
+                            }, 2000);
+                            console.log('✅ Address copied to clipboard');
+                        } catch (err) {
+                            console.warn('Copy failed:', err);
+                            alert('复制失败 / Copy failed');
+                        }
+                    });
+                }
+
+                // Refresh balance button
+                const refreshBtn = document.getElementById('profile-refresh-balance');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', async () => {
+                        if (!provider || !userAddress) {
+                            alert('请先连接钱包 / Please connect wallet first');
+                            return;
+                        }
+                        refreshBtn.textContent = '⏳ Loading...';
+                        try {
+                            await updateProfileBalances();
+                            refreshBtn.textContent = '✅ Updated!';
+                            setTimeout(() => {
+                                refreshBtn.textContent = '🔄 Refresh';
+                            }, 2000);
+                        } catch (err) {
+                            console.warn('Refresh failed:', err);
+                            refreshBtn.textContent = '🔄 Refresh';
+                            alert('刷新失败 / Refresh failed');
+                        }
+                    });
+                }
+            });
+
+            // Initial screen display
+            showScreen('screen-login');
+        });
+    </script>
+
+</body>
+</html>

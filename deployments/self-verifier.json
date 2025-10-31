@@ -1,0 +1,10 @@
+{
+  "network": "celo-sepolia",
+  "timestamp": "2025-10-31T14:23:34.575Z",
+  "contracts": {
+    "SelfVerifier": {
+      "address": "0xE69699B6f4752c651c71047190c3eE0460410cac",
+      "explorer": "https://sepolia.celoscan.io/address/0xE69699B6f4752c651c71047190c3eE0460410cac"
+    }
+  }
+}

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StayFi - imToken 簡化測試</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-yellow-400 mb-2">🏨 StayFi</h1>
+                <p class="text-gray-400">Self Protocol 測試（支援 imToken）</p>
+            </div>
+
+            <!-- Instructions -->
+            <div class="mb-8 p-6 bg-blue-900 bg-opacity-30 rounded-xl">
+                <h3 class="text-xl font-bold mb-4">📱 測試說明：</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">1️⃣</span>
+                        <div>
+                            <p class="font-bold">在電腦上點擊「連接錢包」</p>
+                            <p class="text-gray-400">會自動打開 MetaMask</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">2️⃣</span>
+                        <div>
+                            <p class="font-bold">批准連接</p>
+                            <p class="text-gray-400">確認切換到 Celo Alfajores 測試網</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">3️⃣</span>
+                        <div>
+                            <p class="font-bold">點擊「開始驗證」</p>
+                            <p class="text-gray-400">模擬 Self Protocol 身份驗證</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div id="status" class="mb-6 p-4 bg-gray-700 rounded-lg text-center">
+                <p class="text-lg">🔌 未連接錢包</p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="space-y-4">
+                <!-- Connect Button -->
+                <button id="connectBtn" onclick="connectWallet()" 
+                    class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-4 px-6 rounded-xl text-lg transition shadow-lg">
+                    🔗 連接錢包 (MetaMask)
+                </button>
+
+                <!-- Verify Button -->
+                <button id="verifyBtn" onclick="startVerification()" disabled
+                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl text-lg transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                    🔐 開始驗證 (Self Protocol)
+                </button>
+
+                <!-- Check Contract Button -->
+                <button id="checkBtn" onclick="checkContract()" disabled
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-xl text-lg transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                    📊 查詢合約狀態
+                </button>
+
+                <!-- Disconnect Button -->
+                <button id="disconnectBtn" onclick="disconnect()" disabled
+                    class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-xl text-lg transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                    ❌ 斷開連接
+                </button>
+            </div>
+
+            <!-- Wallet Info -->
+            <div id="walletInfo" class="mt-8 hidden">
+                <div class="bg-gray-700 rounded-lg p-6 space-y-4">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">錢包地址</p>
+                        <p id="address" class="font-mono text-sm text-yellow-400 break-all"></p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">網路</p>
+                        <p id="network" class="text-green-400"></p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">餘額</p>
+                        <p id="balance" class="text-blue-400"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Status -->
+            <div id="verificationStatus" class="mt-8 hidden">
+                <div class="bg-gray-700 rounded-lg p-6">
+                    <h3 class="text-xl font-bold mb-4">🔐 驗證狀態</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded">
+                            <span>Age 18+</span>
+                            <span id="status-age" class="text-2xl">⏳</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded">
+                            <span>Not Sanctioned Country</span>
+                            <span id="status-country" class="text-2xl">⏳</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded">
+                            <span>OFAC Compliant</span>
+                            <span id="status-ofac" class="text-2xl">⏳</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contract Result -->
+            <div id="contractResult" class="mt-8 hidden">
+                <div class="bg-gray-700 rounded-lg p-6">
+                    <h3 class="text-xl font-bold mb-4">📋 合約查詢結果</h3>
+                    <div id="contractContent" class="text-sm space-y-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div id="logs" class="mt-4 bg-gray-800 rounded-lg p-4 max-h-64 overflow-y-auto hidden">
+            <h3 class="font-bold mb-2 text-sm">📝 操作日誌</h3>
+            <div id="logContent" class="text-xs text-gray-400 font-mono space-y-1"></div>
+        </div>
+
+        <!-- Alternative -->
+        <div class="mt-6 p-4 bg-yellow-900 bg-opacity-30 rounded-lg text-center">
+            <p class="text-sm text-yellow-200 mb-2">💡 <strong>給 imToken 用戶：</strong></p>
+            <p class="text-xs text-gray-300">
+                由於 WalletConnect 相容性問題，建議在桌面使用 <strong>MetaMask</strong> 完成測試。<br>
+                或者在 imToken 的 <strong>DApp 瀏覽器</strong>中打開此頁面，然後點擊連接按鈕。
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const CELO_ALFAJORES_CHAIN_ID = 44787;
+        const CELO_ALFAJORES_HEX = '0xAEF3';
+        const BACKEND_URL = 'http://localhost:3001/api/verify';
+        const SELF_VERIFIER_ADDRESS = '0x0E801D84Fa97b50751Dbf25036d067dCf18858bF';
+
+        let provider = null;
+        let signer = null;
+        let userAddress = null;
+
+        // Logging
+        function log(message) {
+            console.log(message);
+            const logDiv = document.getElementById('logContent');
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(logEntry);
+            document.getElementById('logs').classList.remove('hidden');
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Update Status
+        function updateStatus(message, color = 'yellow') {
+            document.getElementById('status').innerHTML = 
+                `<p class="text-lg text-${color}-400">${message}</p>`;
+        }
+
+        // Connect Wallet
+        async function connectWallet() {
+            try {
+                // Check if MetaMask/Web3 provider exists
+                if (typeof window.ethereum === 'undefined') {
+                    alert('請安裝 MetaMask 或在 imToken DApp 瀏覽器中打開此頁面！');
+                    log('❌ 未檢測到 Web3 提供者');
+                    return;
+                }
+
+                log('正在連接錢包...');
+                updateStatus('🔄 正在連接...', 'blue');
+
+                // Request account access
+                const accounts = await window.ethereum.request({ 
+                    method: 'eth_requestAccounts' 
+                });
+
+                // Initialize provider
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                userAddress = accounts[0];
+
+                log(`✅ 已連接: ${userAddress}`);
+                updateStatus('✅ 錢包已連接', 'green');
+
+                // Display wallet info
+                document.getElementById('walletInfo').classList.remove('hidden');
+                document.getElementById('address').textContent = userAddress;
+
+                // Get network info
+                const network = await provider.getNetwork();
+                document.getElementById('network').textContent = 
+                    network.chainId === CELO_ALFAJORES_CHAIN_ID 
+                        ? 'Celo Alfajores Testnet ✅' 
+                        : `Chain ID: ${network.chainId} ⚠️`;
+
+                // Get balance
+                const balance = await provider.getBalance(userAddress);
+                document.getElementById('balance').textContent = 
+                    `${ethers.utils.formatEther(balance).substring(0, 8)} CELO`;
+
+                // Check if on correct network
+                if (network.chainId !== CELO_ALFAJORES_CHAIN_ID) {
+                    log('⚠️ 請切換到 Celo Alfajores 測試網');
+                    if (confirm('需要切換到 Celo Alfajores 測試網，是否立即切換？')) {
+                        await switchNetwork();
+                    }
+                }
+
+                // Enable buttons
+                document.getElementById('verifyBtn').disabled = false;
+                document.getElementById('checkBtn').disabled = false;
+                document.getElementById('disconnectBtn').disabled = false;
+                document.getElementById('connectBtn').disabled = true;
+
+            } catch (error) {
+                console.error('連接失敗:', error);
+                log(`❌ 連接失敗: ${error.message}`);
+                updateStatus('❌ 連接失敗', 'red');
+                alert('連接失敗: ' + error.message);
+            }
+        }
+
+        // Switch Network
+        async function switchNetwork() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: CELO_ALFAJORES_HEX }],
+                });
+                log('✅ 已切換到 Celo Alfajores');
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: CELO_ALFAJORES_HEX,
+                                chainName: 'Celo Alfajores Testnet',
+                                nativeCurrency: {
+                                    name: 'CELO',
+                                    symbol: 'CELO',
+                                    decimals: 18
+                                },
+                                rpcUrls: ['https://alfajores-forno.celo-testnet.org'],
+                                blockExplorerUrls: ['https://alfajores.celoscan.io/']
+                            }],
+                        });
+                        log('✅ Celo Alfajores 網路已添加');
+                    } catch (addError) {
+                        console.error('添加網路失敗:', addError);
+                        log(`❌ 添加網路失敗: ${addError.message}`);
+                    }
+                }
+            }
+        }
+
+        // Start Verification
+        async function startVerification() {
+            try {
+                log('🔐 開始 Self Protocol 驗證...');
+                document.getElementById('verificationStatus').classList.remove('hidden');
+                updateStatus('🔄 正在驗證...', 'blue');
+
+                // Mock verification data
+                const verificationData = {
+                    attestationId: 1,
+                    proof: '0x' + '00'.repeat(100),
+                    publicSignals: [1, 2, 3],
+                    userContextData: ethers.utils.keccak256(
+                        ethers.utils.toUtf8Bytes(userAddress)
+                    )
+                };
+
+                log('發送驗證請求到後端...');
+
+                // Call backend
+                const response = await fetch(BACKEND_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(verificationData)
+                });
+
+                const result = await response.json();
+                log(`後端回應: ${JSON.stringify(result).substring(0, 100)}...`);
+
+                if (result.status === 'success' || result.result === true) {
+                    document.getElementById('status-age').textContent = '✅';
+                    document.getElementById('status-country').textContent = '✅';
+                    document.getElementById('status-ofac').textContent = '✅';
+
+                    updateStatus('✅ 驗證成功！', 'green');
+                    log('✅ 驗證完成！');
+
+                    if (result.onchain && result.onchain.transactionHash) {
+                        log(`📝 交易: ${result.onchain.transactionHash}`);
+                        setTimeout(() => {
+                            alert(`驗證成功！\n\n查看交易:\n${result.onchain.networkUrl}`);
+                        }, 500);
+                    } else {
+                        alert('驗證成功！\n（後端處理完成，可查詢合約狀態）');
+                    }
+                } else {
+                    updateStatus('❌ 驗證失敗', 'red');
+                    log(`❌ 驗證失敗: ${result.reason || '未知錯誤'}`);
+                    alert('驗證失敗: ' + (result.reason || '請檢查後端日誌'));
+                }
+
+            } catch (error) {
+                console.error('驗證錯誤:', error);
+                log(`❌ 驗證錯誤: ${error.message}`);
+                updateStatus('❌ 驗證錯誤', 'red');
+                alert('驗證錯誤: ' + error.message);
+            }
+        }
+
+        // Check Contract
+        async function checkContract() {
+            try {
+                log('📊 查詢合約狀態...');
+                document.getElementById('contractResult').classList.remove('hidden');
+                const content = document.getElementById('contractContent');
+                content.innerHTML = '<p class="text-gray-400">正在查詢...</p>';
+
+                // Contract ABI
+                const abi = [
+                    'function isVerified(address user) view returns (bool)',
+                    'function getVerification(address user) view returns (tuple(uint96 timestamp, bytes32 proofHash, bool isVerified, bool isAgeValid, bool isCountryValid, bool isOfacClear))'
+                ];
+
+                const contract = new ethers.Contract(SELF_VERIFIER_ADDRESS, abi, provider);
+
+                // Check if verified
+                const isVerified = await contract.isVerified(userAddress);
+                log(`合約查詢結果: isVerified = ${isVerified}`);
+
+                if (isVerified) {
+                    const verification = await contract.getVerification(userAddress);
+                    const timestamp = new Date(verification.timestamp * 1000);
+
+                    content.innerHTML = `
+                        <div class="space-y-2">
+                            <p class="text-green-400 font-bold">✅ 已驗證</p>
+                            <p><span class="text-gray-400">時間:</span> ${timestamp.toLocaleString()}</p>
+                            <p><span class="text-gray-400">年齡驗證:</span> ${verification.isAgeValid ? '✅' : '❌'}</p>
+                            <p><span class="text-gray-400">國家驗證:</span> ${verification.isCountryValid ? '✅' : '❌'}</p>
+                            <p><span class="text-gray-400">OFAC驗證:</span> ${verification.isOfacClear ? '✅' : '❌'}</p>
+                            <p class="text-xs text-gray-500 mt-3 break-all">Proof Hash: ${verification.proofHash}</p>
+                        </div>
+                    `;
+                    log('✅ 合約查詢完成');
+                } else {
+                    content.innerHTML = '<p class="text-yellow-400">⚠️ 尚未驗證</p>';
+                    log('ℹ️ 用戶尚未完成驗證');
+                }
+
+            } catch (error) {
+                console.error('查詢失敗:', error);
+                log(`❌ 查詢失敗: ${error.message}`);
+                document.getElementById('contractContent').innerHTML = 
+                    `<p class="text-red-400">❌ 查詢失敗: ${error.message}</p>`;
+            }
+        }
+
+        // Disconnect
+        function disconnect() {
+            provider = null;
+            signer = null;
+            userAddress = null;
+
+            document.getElementById('walletInfo').classList.add('hidden');
+            document.getElementById('verificationStatus').classList.add('hidden');
+            document.getElementById('contractResult').classList.add('hidden');
+            
+            document.getElementById('verifyBtn').disabled = true;
+            document.getElementById('checkBtn').disabled = true;
+            document.getElementById('disconnectBtn').disabled = true;
+            document.getElementById('connectBtn').disabled = false;
+
+            updateStatus('🔌 未連接錢包', 'yellow');
+            log('已斷開連接');
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            log('頁面已載入');
+            log(`後端 API: ${BACKEND_URL}`);
+            log(`合約地址: ${SELF_VERIFIER_ADDRESS}`);
+        });
+    </script>
+</body>
+</html>

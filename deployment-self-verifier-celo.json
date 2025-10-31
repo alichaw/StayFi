@@ -1,0 +1,10 @@
+{
+  "network": "Celo Sepolia",
+  "chainId": 11142220,
+  "address": "0x0E801D84Fa97b50751Dbf25036d067dCf18858bF",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "timestamp": "2025-10-31T10:05:31.549Z",
+  "blockNumber": 47,
+  "explorerUrl": "https://celo-sepolia.blockscout.com/address/0x0E801D84Fa97b50751Dbf25036d067dCf18858bF",
+  "rpcUrl": "https://forno.celo-testnet.org"
+}

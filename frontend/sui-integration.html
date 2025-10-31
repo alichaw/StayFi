@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StayFi - SUI Integration Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .wallet-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .wallet-info {
+            display: none;
+        }
+        
+        .wallet-info.active {
+            display: block;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .nft-list {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .nft-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .nft-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .status.unused {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.used {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #f5c6cb;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏨 StayFi - SUI 版本</h1>
+        <p class="subtitle">Hotel Night-Pass NFT on SUI Blockchain</p>
+        
+        <div class="info-box">
+            <strong>📌 說明:</strong> 這是 StayFi 在 SUI 區塊鏈上的實現。使用 Sui Wallet 連接並鑄造酒店住宿 NFT。
+        </div>
+        
+        <!-- Wallet Connection -->
+        <div class="wallet-section">
+            <h2>💼 錢包連接</h2>
+            <button id="connectBtn" onclick="connectWallet()">連接 Sui Wallet</button>
+            
+            <div id="walletInfo" class="wallet-info">
+                <p><strong>地址:</strong> <span id="walletAddress"></span></p>
+                <p><strong>餘額:</strong> <span id="walletBalance"></span> SUI</p>
+                <button onclick="disconnectWallet()">斷開連接</button>
+            </div>
+        </div>
+        
+        <!-- Mint NFT Section -->
+        <div class="wallet-section">
+            <h2>🎫 鑄造酒店 NFT</h2>
+            
+            <div class="form-group">
+                <label for="hotelName">酒店名稱</label>
+                <input type="text" id="hotelName" placeholder="台北君悅酒店">
+            </div>
+            
+            <div class="form-group">
+                <label for="roomType">房型</label>
+                <select id="roomType">
+                    <option value="Standard">標準房</option>
+                    <option value="Deluxe">豪華房</option>
+                    <option value="Suite">套房</option>
+                    <option value="Executive">行政套房</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="checkIn">入住日期</label>
+                <input type="date" id="checkIn">
+            </div>
+            
+            <div class="form-group">
+                <label for="checkOut">退房日期</label>
+                <input type="date" id="checkOut">
+            </div>
+            
+            <div class="form-group">
+                <label for="guestName">住客姓名</label>
+                <input type="text" id="guestName" placeholder="王小明">
+            </div>
+            
+            <div class="form-group">
+                <label for="price">價格 (SUI)</label>
+                <input type="number" id="price" step="0.01" placeholder="1.5">
+            </div>
+            
+            <button id="mintBtn" onclick="mintNFT()" disabled>鑄造 NFT</button>
+        </div>
+        
+        <!-- NFT List -->
+        <div class="wallet-section">
+            <h2>📋 我的 NFT</h2>
+            <button onclick="loadMyNFTs()">刷新 NFT 列表</button>
+            <div id="nftList" class="nft-list"></div>
+        </div>
+        
+        <!-- Messages -->
+        <div id="messages"></div>
+    </div>
+    
+    <script src="https://unpkg.com/@mysten/wallet-standard@0.10.0/dist/index.umd.js"></script>
+    <script src="https://unpkg.com/@mysten/sui.js@0.54.0/dist/index.umd.js"></script>
+    
+    <script>
+        // SUI Configuration
+        const SUI_CONFIG = {
+            network: 'testnet', // Change to 'mainnet' for production
+            packageId: 'YOUR_PACKAGE_ID_HERE', // Update after deployment
+            registryId: 'YOUR_REGISTRY_OBJECT_ID_HERE' // Update after deployment
+        };
+        
+        let suiClient;
+        let currentWallet = null;
+        let currentAccount = null;
+        
+        // Initialize SUI client
+        function initSuiClient() {
+            const { SuiClient, getFullnodeUrl } = window['@mysten/sui.js'];
+            const rpcUrl = getFullnodeUrl(SUI_CONFIG.network);
+            suiClient = new SuiClient({ url: rpcUrl });
+            console.log('SUI Client initialized:', rpcUrl);
+        }
+        
+        // Connect wallet
+        async function connectWallet() {
+            try {
+                if (!window.suiWallet) {
+                    showError('請先安裝 Sui Wallet 擴展程式');
+                    window.open('https://chrome.google.com/webstore/detail/sui-wallet', '_blank');
+                    return;
+                }
+                
+                showLoading('正在連接錢包...');
+                
+                const accounts = await window.suiWallet.requestPermissions();
+                if (accounts && accounts.length > 0) {
+                    currentWallet = window.suiWallet;
+                    currentAccount = accounts[0];
+                    
+                    // Get balance
+                    const balance = await suiClient.getBalance({
+                        owner: currentAccount.address
+                    });
+                    
+                    // Update UI
+                    document.getElementById('walletAddress').textContent = 
+                        currentAccount.address.substring(0, 10) + '...' + 
+                        currentAccount.address.substring(currentAccount.address.length - 8);
+                    document.getElementById('walletBalance').textContent = 
+                        (parseInt(balance.totalBalance) / 1e9).toFixed(4);
+                    
+                    document.getElementById('connectBtn').style.display = 'none';
+                    document.getElementById('walletInfo').classList.add('active');
+                    document.getElementById('mintBtn').disabled = false;
+                    
+                    clearMessages();
+                    showSuccess('錢包連接成功！');
+                    
+                    // Load NFTs
+                    await loadMyNFTs();
+                }
+            } catch (error) {
+                console.error('連接錢包失敗:', error);
+                showError('連接錢包失敗: ' + error.message);
+            }
+        }
+        
+        // Disconnect wallet
+        function disconnectWallet() {
+            currentWallet = null;
+            currentAccount = null;
+            document.getElementById('connectBtn').style.display = 'block';
+            document.getElementById('walletInfo').classList.remove('active');
+            document.getElementById('mintBtn').disabled = true;
+            document.getElementById('nftList').innerHTML = '';
+            showSuccess('錢包已斷開連接');
+        }
+        
+        // Mint NFT
+        async function mintNFT() {
+            if (!currentAccount) {
+                showError('請先連接錢包');
+                return;
+            }
+            
+            try {
+                // Get form data
+                const hotelName = document.getElementById('hotelName').value;
+                const roomType = document.getElementById('roomType').value;
+                const checkIn = new Date(document.getElementById('checkIn').value).getTime();
+                const checkOut = new Date(document.getElementById('checkOut').value).getTime();
+                const guestName = document.getElementById('guestName').value;
+                const price = parseFloat(document.getElementById('price').value);
+                
+                // Validation
+                if (!hotelName || !guestName || !price) {
+                    showError('請填寫所有必填欄位');
+                    return;
+                }
+                
+                showLoading('正在鑄造 NFT...');
+                
+                const { TransactionBlock } = window['@mysten/sui.js'];
+                const tx = new TransactionBlock();
+                
+                // Split coin for payment
+                const [coin] = tx.splitCoins(tx.gas, [tx.pure(price * 1e9)]);
+                
+                // Call mint function
+                tx.moveCall({
+                    target: `${SUI_CONFIG.packageId}::hotel_nft::mint_hotel_nft`,
+                    arguments: [
+                        tx.object(SUI_CONFIG.registryId),
+                        tx.pure(Array.from(new TextEncoder().encode(hotelName))),
+                        tx.pure(Array.from(new TextEncoder().encode(roomType))),
+                        tx.pure(checkIn),
+                        tx.pure(checkOut),
+                        tx.pure(Array.from(new TextEncoder().encode(guestName))),
+                        tx.pure(Array.from(new TextEncoder().encode(`ipfs://metadata/${Date.now()}`))),
+                        coin
+                    ],
+                });
+                
+                // Sign and execute
+                const result = await currentWallet.signAndExecuteTransactionBlock({
+                    transactionBlock: tx,
+                    account: currentAccount,
+                });
+                
+                clearMessages();
+                showSuccess(`NFT 鑄造成功！交易: ${result.digest}`);
+                
+                // Clear form
+                document.getElementById('hotelName').value = '';
+                document.getElementById('guestName').value = '';
+                document.getElementById('price').value = '';
+                
+                // Reload NFTs
+                setTimeout(() => loadMyNFTs(), 2000);
+                
+            } catch (error) {
+                console.error('鑄造失敗:', error);
+                showError('鑄造失敗: ' + error.message);
+            }
+        }
+        
+        // Load user's NFTs
+        async function loadMyNFTs() {
+            if (!currentAccount) {
+                showError('請先連接錢包');
+                return;
+            }
+            
+            try {
+                showLoading('正在載入 NFT...');
+                
+                // Get owned objects
+                const objects = await suiClient.getOwnedObjects({
+                    owner: currentAccount.address,
+                    filter: {
+                        StructType: `${SUI_CONFIG.packageId}::hotel_nft::HotelNFT`
+                    },
+                    options: {
+                        showContent: true,
+                        showDisplay: true
+                    }
+                });
+                
+                const nftList = document.getElementById('nftList');
+                nftList.innerHTML = '';
+                
+                if (objects.data.length === 0) {
+                    nftList.innerHTML = '<p style="text-align: center; color: #666;">尚無 NFT</p>';
+                } else {
+                    objects.data.forEach(obj => {
+                        const nft = obj.data.content.fields;
+                        const nftCard = createNFTCard(nft);
+                        nftList.appendChild(nftCard);
+                    });
+                }
+                
+                clearMessages();
+            } catch (error) {
+                console.error('載入 NFT 失敗:', error);
+                showError('載入 NFT 失敗: ' + error.message);
+            }
+        }
+        
+        // Create NFT card element
+        function createNFTCard(nft) {
+            const card = document.createElement('div');
+            card.className = 'nft-card';
+            
+            const checkIn = new Date(parseInt(nft.check_in_date));
+            const checkOut = new Date(parseInt(nft.check_out_date));
+            
+            card.innerHTML = `
+                <h3>${nft.hotel_name}</h3>
+                <p><strong>房型:</strong> ${nft.room_type}</p>
+                <p><strong>住客:</strong> ${nft.guest_name}</p>
+                <p><strong>入住:</strong> ${checkIn.toLocaleDateString()}</p>
+                <p><strong>退房:</strong> ${checkOut.toLocaleDateString()}</p>
+                <p><strong>價格:</strong> ${(nft.price_paid / 1e9).toFixed(4)} SUI</p>
+                <span class="status ${nft.is_used ? 'used' : 'unused'}">
+                    ${nft.is_used ? '已使用' : '未使用'}
+                </span>
+            `;
+            
+            return card;
+        }
+        
+        // UI Helper functions
+        function showLoading(message) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `<div class="loading">${message}</div>`;
+        }
+        
+        function showError(message) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `<div class="error">${message}</div>`;
+        }
+        
+        function showSuccess(message) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `<div class="success">${message}</div>`;
+        }
+        
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            initSuiClient();
+            
+            // Set default dates
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            document.getElementById('checkIn').valueAsDate = today;
+            document.getElementById('checkOut').valueAsDate = tomorrow;
+        });
+    </script>
+</body>
+</html>

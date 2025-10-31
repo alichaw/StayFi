@@ -1,0 +1,184 @@
+module stayfi::hotel_nft {
+    use sui::object::{Self, UID, ID};
+    use sui::transfer;
+    use sui::tx_context::{Self, TxContext};
+    use std::string::{Self, String};
+    use sui::event;
+    use sui::table::{Self, Table};
+    use sui::coin::{Self, Coin};
+    use sui::sui::SUI;
+    use sui::balance::{Self, Balance};
+
+    /// Hotel Night-Pass NFT Object
+    public struct HotelNFT has key, store {
+        id: UID,
+        token_id: u64,
+        hotel_name: String,
+        room_type: String,
+        check_in_date: u64,
+        check_out_date: u64,
+        guest_name: String,
+        price_paid: u64,
+        is_used: bool,
+        metadata_uri: String,
+    }
+
+    /// NFT Registry to track all minted NFTs
+    public struct NFTRegistry has key {
+        id: UID,
+        next_token_id: u64,
+        owner: address,
+        treasury: Balance<SUI>,
+        nfts: Table<u64, ID>,
+    }
+
+    /// Events
+    public struct NFTMinted has copy, drop {
+        token_id: u64,
+        hotel_name: String,
+        guest: address,
+        price: u64,
+    }
+
+    public struct NFTUsed has copy, drop {
+        token_id: u64,
+        hotel_name: String,
+    }
+
+    /// Initialize the module
+    fun init(ctx: &mut TxContext) {
+        let registry = NFTRegistry {
+            id: object::new(ctx),
+            next_token_id: 1,
+            owner: tx_context::sender(ctx),
+            treasury: balance::zero(),
+            nfts: table::new(ctx),
+        };
+        transfer::share_object(registry);
+    }
+
+    /// Mint a new Hotel NFT
+    public entry fun mint_hotel_nft(
+        registry: &mut NFTRegistry,
+        hotel_name: vector<u8>,
+        room_type: vector<u8>,
+        check_in_date: u64,
+        check_out_date: u64,
+        guest_name: vector<u8>,
+        metadata_uri: vector<u8>,
+        payment: Coin<SUI>,
+        ctx: &mut TxContext
+    ) {
+        let price_paid = coin::value(&payment);
+        let payment_balance = coin::into_balance(payment);
+        balance::join(&mut registry.treasury, payment_balance);
+
+        let token_id = registry.next_token_id;
+        registry.next_token_id = token_id + 1;
+
+        let nft = HotelNFT {
+            id: object::new(ctx),
+            token_id,
+            hotel_name: string::utf8(hotel_name),
+            room_type: string::utf8(room_type),
+            check_in_date,
+            check_out_date,
+            guest_name: string::utf8(guest_name),
+            price_paid,
+            is_used: false,
+            metadata_uri: string::utf8(metadata_uri),
+        };
+
+        let nft_id = object::id(&nft);
+        table::add(&mut registry.nfts, token_id, nft_id);
+
+        event::emit(NFTMinted {
+            token_id,
+            hotel_name: nft.hotel_name,
+            guest: tx_context::sender(ctx),
+            price: price_paid,
+        });
+
+        transfer::transfer(nft, tx_context::sender(ctx));
+    }
+
+    /// Mark NFT as used (check-in)
+    public entry fun use_nft(
+        nft: &mut HotelNFT,
+        _ctx: &mut TxContext
+    ) {
+        assert!(!nft.is_used, 1); // Error code 1: NFT already used
+        nft.is_used = true;
+
+        event::emit(NFTUsed {
+            token_id: nft.token_id,
+            hotel_name: nft.hotel_name,
+        });
+    }
+
+    /// Transfer NFT to another address
+    public entry fun transfer_nft(
+        nft: HotelNFT,
+        recipient: address,
+        _ctx: &mut TxContext
+    ) {
+        assert!(!nft.is_used, 2); // Error code 2: Cannot transfer used NFT
+        transfer::transfer(nft, recipient);
+    }
+
+    /// Withdraw funds from treasury (only owner)
+    public entry fun withdraw_treasury(
+        registry: &mut NFTRegistry,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
+        assert!(tx_context::sender(ctx) == registry.owner, 3); // Error code 3: Not owner
+        let withdrawn = coin::take(&mut registry.treasury, amount, ctx);
+        transfer::public_transfer(withdrawn, registry.owner);
+    }
+
+    // View functions
+    public fun get_token_id(nft: &HotelNFT): u64 {
+        nft.token_id
+    }
+
+    public fun get_hotel_name(nft: &HotelNFT): String {
+        nft.hotel_name
+    }
+
+    public fun get_room_type(nft: &HotelNFT): String {
+        nft.room_type
+    }
+
+    public fun get_check_in_date(nft: &HotelNFT): u64 {
+        nft.check_in_date
+    }
+
+    public fun get_check_out_date(nft: &HotelNFT): u64 {
+        nft.check_out_date
+    }
+
+    public fun get_guest_name(nft: &HotelNFT): String {
+        nft.guest_name
+    }
+
+    public fun get_price_paid(nft: &HotelNFT): u64 {
+        nft.price_paid
+    }
+
+    public fun is_used(nft: &HotelNFT): bool {
+        nft.is_used
+    }
+
+    public fun get_metadata_uri(nft: &HotelNFT): String {
+        nft.metadata_uri
+    }
+
+    public fun get_next_token_id(registry: &NFTRegistry): u64 {
+        registry.next_token_id
+    }
+
+    public fun get_treasury_balance(registry: &NFTRegistry): u64 {
+        balance::value(&registry.treasury)
+    }
+}
